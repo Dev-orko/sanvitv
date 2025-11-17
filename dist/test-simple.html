@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidSrc Test - Simple</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .player {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .test {
+            margin: 30px 0;
+            padding: 20px;
+            background: #111;
+            border-radius: 10px;
+        }
+        .url {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        button {
+            background: #e50914;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #f40612;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VidSrc Player Test</h1>
+        
+        <div class="test">
+            <h2>Test 1: Spider-Man No Way Home (TMDB: 634649)</h2>
+            <div class="url">https://vidsrc.to/embed/movie/634649</div>
+            <button onclick="loadMovie1()">Load Movie</button>
+            <div id="player1-container"></div>
+        </div>
+
+        <div class="test">
+            <h2>Test 2: Fast X (TMDB: 385687)</h2>
+            <div class="url">https://vidsrc.to/embed/movie/385687</div>
+            <button onclick="loadMovie2()">Load Movie</button>
+            <div id="player2-container"></div>
+        </div>
+
+        <div class="test">
+            <h2>Test 3: Game of Thrones S1E1 (TMDB: 1399)</h2>
+            <div class="url">https://vidsrc.to/embed/tv/1399/1/1</div>
+            <button onclick="loadTV()">Load TV Show</button>
+            <div id="player3-container"></div>
+        </div>
+
+        <div class="test">
+            <h2>Network Test</h2>
+            <button onclick="testNetwork()">Test VidSrc.to Connection</button>
+            <div id="network-result"></div>
+        </div>
+    </div>
+
+    <script>
+        function createPlayer(url, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <iframe 
+                    class="player"
+                    src="${url}"
+                    allowfullscreen
+                    webkitallowfullscreen
+                    mozallowfullscreen
+                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            `;
+            console.log('Loading:', url);
+        }
+
+        function loadMovie1() {
+            createPlayer('https://vidsrc.to/embed/movie/634649', 'player1-container');
+        }
+
+        function loadMovie2() {
+            createPlayer('https://vidsrc.to/embed/movie/385687', 'player2-container');
+        }
+
+        function loadTV() {
+            createPlayer('https://vidsrc.to/embed/tv/1399/1/1', 'player3-container');
+        }
+
+        async function testNetwork() {
+            const result = document.getElementById('network-result');
+            result.innerHTML = '<p>Testing connection to VidSrc.to...</p>';
+            
+            try {
+                const response = await fetch('https://vidsrc.to', { mode: 'no-cors' });
+                result.innerHTML = '<p style="color: green;">✅ VidSrc.to is accessible</p>';
+            } catch (error) {
+                result.innerHTML = '<p style="color: red;">❌ VidSrc.to is not accessible: ' + error.message + '</p>';
+            }
+        }
+
+        // Auto-load first movie for immediate testing
+        setTimeout(() => {
+            console.log('Auto-loading Spider-Man test...');
+            loadMovie1();
+        }, 1000);
+    </script>
+</body>
+</html>

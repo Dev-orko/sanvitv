@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidSrc.ts API Test</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-item {
+            margin: 20px 0;
+            padding: 20px;
+            background: #111;
+            border-radius: 10px;
+        }
+        button {
+            background: #e50914;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #f40612;
+        }
+        .result {
+            background: #222;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .success { border-left: 4px solid #4CAF50; }
+        .error { border-left: 4px solid #f44336; }
+        .loading { border-left: 4px solid #2196F3; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>VidSrc.ts API Testing</h1>
+        
+        <div class="test-item">
+            <h2>API Endpoint Tests</h2>
+            <p>Testing various possible VidSrc.ts API deployments:</p>
+            
+            <button onclick="testEndpoint('https://vidsrc-api.vercel.app')">Test vidsrc-api.vercel.app</button>
+            <button onclick="testEndpoint('https://vidsrc-ts.vercel.app')">Test vidsrc-ts.vercel.app</button>
+            <button onclick="testEndpoint('https://vidsrc-extractor.vercel.app')">Test vidsrc-extractor.vercel.app</button>
+            <button onclick="testEndpoint('https://cool-dev-guy-vidsrc.vercel.app')">Test cool-dev-guy-vidsrc.vercel.app</button>
+            
+            <div id="endpoint-results"></div>
+        </div>
+
+        <div class="test-item">
+            <h2>Movie Test: Spider-Man No Way Home (634649)</h2>
+            <button onclick="testMovie('634649')">Test Movie API</button>
+            <div id="movie-results"></div>
+        </div>
+
+        <div class="test-item">
+            <h2>TV Test: Game of Thrones S1E1 (1399)</h2>
+            <button onclick="testTV('1399', 1, 1)">Test TV API</button>
+            <div id="tv-results"></div>
+        </div>
+
+        <div class="test-item">
+            <h2>Manual API Test</h2>
+            <input type="text" id="custom-endpoint" placeholder="Enter API endpoint" style="background: #333; color: white; border: 1px solid #555; padding: 10px; border-radius: 5px; width: 300px;">
+            <button onclick="testCustomEndpoint()">Test Custom Endpoint</button>
+            <div id="custom-results"></div>
+        </div>
+    </div>
+
+    <script>
+        let workingEndpoint = null;
+
+        async function testEndpoint(endpoint) {
+            const resultsDiv = document.getElementById('endpoint-results');
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result loading';
+            resultItem.textContent = `Testing ${endpoint}...`;
+            resultsDiv.appendChild(resultItem);
+
+            try {
+                // Test with a simple movie request
+                const response = await fetch(`${endpoint}/634649`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultItem.className = 'result success';
+                    resultItem.textContent = `✅ ${endpoint} - SUCCESS\n${JSON.stringify(data, null, 2)}`;
+                    workingEndpoint = endpoint;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                resultItem.className = 'result error';
+                resultItem.textContent = `❌ ${endpoint} - FAILED\n${error.message}`;
+            }
+        }
+
+        async function testMovie(tmdbId) {
+            if (!workingEndpoint) {
+                alert('Please find a working endpoint first by testing the endpoints above.');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('movie-results');
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result loading';
+            resultItem.textContent = `Testing movie ${tmdbId}...`;
+            resultsDiv.appendChild(resultItem);
+
+            try {
+                const response = await fetch(`${workingEndpoint}/${tmdbId}`);
+                const data = await response.json();
+                
+                resultItem.className = 'result success';
+                resultItem.textContent = `✅ Movie ${tmdbId} sources:\n${JSON.stringify(data, null, 2)}`;
+                
+                // Test the first stream URL if available
+                if (data && data[0] && data[0].stream) {
+                    testStreamUrl(data[0].stream);
+                }
+            } catch (error) {
+                resultItem.className = 'result error';
+                resultItem.textContent = `❌ Movie test failed: ${error.message}`;
+            }
+        }
+
+        async function testTV(tmdbId, season, episode) {
+            if (!workingEndpoint) {
+                alert('Please find a working endpoint first by testing the endpoints above.');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('tv-results');
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result loading';
+            resultItem.textContent = `Testing TV ${tmdbId} S${season}E${episode}...`;
+            resultsDiv.appendChild(resultItem);
+
+            try {
+                const response = await fetch(`${workingEndpoint}/${tmdbId}/${season}/${episode}`);
+                const data = await response.json();
+                
+                resultItem.className = 'result success';
+                resultItem.textContent = `✅ TV ${tmdbId} S${season}E${episode} sources:\n${JSON.stringify(data, null, 2)}`;
+                
+                // Test the first stream URL if available
+                if (data && data[0] && data[0].stream) {
+                    testStreamUrl(data[0].stream);
+                }
+            } catch (error) {
+                resultItem.className = 'result error';
+                resultItem.textContent = `❌ TV test failed: ${error.message}`;
+            }
+        }
+
+        async function testCustomEndpoint() {
+            const endpoint = document.getElementById('custom-endpoint').value.trim();
+            if (!endpoint) {
+                alert('Please enter an API endpoint');
+                return;
+            }
+            await testEndpoint(endpoint);
+        }
+
+        async function testStreamUrl(streamUrl) {
+            console.log('Testing stream URL:', streamUrl);
+            
+            // Create a video element to test if the stream works
+            const video = document.createElement('video');
+            video.src = streamUrl;
+            video.muted = true;
+            
+            video.onloadstart = () => {
+                console.log('✅ Stream URL is accessible:', streamUrl);
+            };
+            
+            video.onerror = () => {
+                console.log('❌ Stream URL failed to load:', streamUrl);
+            };
+            
+            // Try to load the video
+            video.load();
+        }
+
+        // Auto-test some common endpoints on page load
+        setTimeout(() => {
+            console.log('Starting automatic endpoint tests...');
+            testEndpoint('https://vidsrc-api.vercel.app');
+        }, 1000);
+    </script>
+</body>
+</html>

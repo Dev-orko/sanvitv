@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        button {
+            background: #e50914;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #b8070f;
+        }
+        .video-container {
+            width: 100%;
+            height: 60vh;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid #e50914;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        pre {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .source-selector {
+            margin: 10px 0;
+        }
+        select {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Movie Streaming Test</h1>
+        
+        <div class="controls">
+            <button onclick="testMovie('Fight Club')">Test Fight Club</button>
+            <button onclick="testMovie('Avatar')">Test Avatar</button>
+            <button onclick="testMovie('The Dark Knight')">Test The Dark Knight</button>
+            <button onclick="testMovie('Inception')">Test Inception</button>
+        </div>
+
+        <div class="video-container" id="videoContainer" style="display:none;">
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <div>Loading streaming sources...</div>
+            </div>
+            <video id="videoPlayer" controls style="display:none;">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <div class="source-selector" id="sourceSelector" style="display:none;">
+            <label>Select Source: </label>
+            <select id="sourceSelect" onchange="switchSource()">
+            </select>
+            <button onclick="retryCurrentSource()">Retry</button>
+        </div>
+
+        <div id="logs">
+            <h3>📋 Logs:</h3>
+            <pre id="logOutput">Ready to test...</pre>
+        </div>
+    </div>
+
+    <script>
+        let currentSources = [];
+        let currentSourceIndex = 0;
+        let currentMovieTitle = '';
+
+        function log(message) {
+            const logOutput = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            logOutput.textContent += `[${timestamp}] ${message}\n`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLogs() {
+            document.getElementById('logOutput').textContent = '';
+        }
+
+        async function testMovie(movieTitle) {
+            clearLogs();
+            log(`🎬 Testing movie: ${movieTitle}`);
+            
+            currentMovieTitle = movieTitle;
+            document.getElementById('videoContainer').style.display = 'block';
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('videoPlayer').style.display = 'none';
+            document.getElementById('sourceSelector').style.display = 'none';
+
+            try {
+                // Get streaming sources
+                const sources = await getStreamingSources(movieTitle);
+                
+                if (sources.length === 0) {
+                    log('❌ No streaming sources found');
+                    return;
+                }
+
+                currentSources = sources;
+                currentSourceIndex = 0;
+
+                // Populate source selector
+                populateSourceSelector();
+                
+                // Load first source
+                await loadVideoSource(0);
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function getStreamingSources(movieTitle) {
+            log(`🔍 Searching for: ${movieTitle}`);
+            
+            try {
+                const baseUrl = 'http://127.0.0.1:5000';
+                const url = `${baseUrl}/media/searchByName?name=${encodeURIComponent(movieTitle)}`;
+                log(`📡 API URL: ${url}`);
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                log(`📊 Response: ${response.status} ${response.statusText}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                log(`📦 API Response: ${JSON.stringify(data, null, 2)}`);
+
+                // Process the response into streaming sources
+                let movies = [];
+                if (Array.isArray(data)) {
+                    movies = data;
+                } else if (data.results && Array.isArray(data.results)) {
+                    movies = data.results;
+                } else if (data.movies && Array.isArray(data.movies)) {
+                    movies = data.movies;
+                }
+
+                log(`📋 Found ${movies.length} movies`);
+
+                // Convert to streaming sources - prioritize movies over series
+                const sources = movies
+                    .filter(movie => movie.type === 'Movie') // Only movies for now
+                    .map((movie, index) => ({
+                        name: `${movie.title} (${movie.quality})`,
+                        image: movie.poster || '',
+                        mediaId: movie.link || `movie-${index}`,
+                        stream: movie.link, // This is the Fmovies movie page URL
+                        isMoviePage: true,
+                        quality: movie.quality,
+                        releaseDate: movie.release_date
+                    }));
+
+                if (sources.length === 0) {
+                    log('❌ No movies found in API results');
+                    throw new Error('No movies found for this title');
+                }
+
+                log(`✅ Prepared ${sources.length} streaming sources`);
+                return sources;
+
+            } catch (error) {
+                log(`❌ API Error: ${error.message}`);
+                throw error; // Don't return demo sources, let error bubble up
+            }
+        }
+
+
+
+        function populateSourceSelector() {
+            const select = document.getElementById('sourceSelect');
+            select.innerHTML = '';
+            
+            currentSources.forEach((source, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = source.name;
+                select.appendChild(option);
+            });
+
+            document.getElementById('sourceSelector').style.display = 'block';
+        }
+
+        async function loadVideoSource(sourceIndex) {
+            if (sourceIndex >= currentSources.length) {
+                log('❌ No more sources to try');
+                return;
+            }
+
+            currentSourceIndex = sourceIndex;
+            const source = currentSources[sourceIndex];
+            
+            log(`🎥 Loading source ${sourceIndex + 1}/${currentSources.length}: ${source.name}`);
+            log(`📺 Stream URL: ${source.stream}`);
+            log(`🎬 Is movie page: ${source.isMoviePage ? 'Yes' : 'No'}`);
+
+            const video = document.getElementById('videoPlayer');
+            const loading = document.getElementById('loadingIndicator');
+            const container = document.getElementById('videoContainer');
+
+            // Update source selector
+            document.getElementById('sourceSelect').value = sourceIndex;
+
+            // Remove any existing iframe
+            const existingIframe = container.querySelector('iframe');
+            if (existingIframe) {
+                existingIframe.remove();
+            }
+
+            if (source.isMoviePage) {
+                // Create iframe for movie page
+                log('🎬 Creating iframe for movie page');
+                
+                video.style.display = 'none';
+                loading.style.display = 'block';
+                
+                const iframe = document.createElement('iframe');
+                iframe.src = source.stream;
+                iframe.style.cssText = 'width: 100%; height: 100%; border: none; background: black;';
+                iframe.allowFullscreen = true;
+                iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
+                
+                iframe.onload = () => {
+                    log('✅ Movie page loaded in iframe');
+                    loading.style.display = 'none';
+                };
+                
+                iframe.onerror = () => {
+                    log('❌ Iframe failed to load');
+                    setTimeout(() => {
+                        if (sourceIndex + 1 < currentSources.length) {
+                            loadVideoSource(sourceIndex + 1);
+                        } else {
+                            log('❌ All sources failed');
+                            loading.style.display = 'none';
+                        }
+                    }, 1000);
+                };
+                
+                container.appendChild(iframe);
+                
+            } else {
+                // Direct video playback
+                log('📺 Using direct video playback');
+                
+                video.style.display = 'none';
+                loading.style.display = 'block';
+                video.src = source.stream;
+
+                video.onloadstart = () => {
+                    log('📡 Video loading started...');
+                };
+
+                video.oncanplay = () => {
+                    log('✅ Video ready to play');
+                    loading.style.display = 'none';
+                    video.style.display = 'block';
+                };
+
+                video.onerror = (e) => {
+                    log(`❌ Video error: ${e.target.error?.message || 'Unknown error'}`);
+                    log('🔄 Trying next source...');
+                    
+                    setTimeout(() => {
+                        if (sourceIndex + 1 < currentSources.length) {
+                            loadVideoSource(sourceIndex + 1);
+                        } else {
+                            log('❌ All sources failed');
+                            loading.style.display = 'none';
+                        }
+                    }, 1000);
+                };
+
+                video.onloadeddata = () => {
+                    log('📊 Video metadata loaded');
+                };
+            }
+        }
+
+        function switchSource() {
+            const select = document.getElementById('sourceSelect');
+            const sourceIndex = parseInt(select.value);
+            log(`🔄 Switching to source: ${sourceIndex + 1}`);
+            loadVideoSource(sourceIndex);
+        }
+
+        function retryCurrentSource() {
+            log('🔄 Retrying current source...');
+            loadVideoSource(currentSourceIndex);
+        }
+    </script>
+</body>
+</html>

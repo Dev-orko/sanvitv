@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Connectivity Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+        pre { background: #333; padding: 15px; border-radius: 5px; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 API Connectivity Test</h1>
+    
+    <div>
+        <button onclick="testAPI('Fight Club')">Test Fight Club</button>
+        <button onclick="testAPI('Avatar')">Test Avatar</button>
+        <button onclick="testTrending()">Test Trending</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    
+    <div id="output">
+        <h3>📋 Output:</h3>
+        <pre id="logs">Ready to test API...</pre>
+    </div>
+
+    <script>
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.textContent += `[${timestamp}] ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').textContent = 'Logs cleared...\n';
+        }
+
+        async function testAPI(movieName) {
+            log(`🔍 Testing search for: ${movieName}`);
+            
+            try {
+                const url = `http://127.0.0.1:5000/search?keyword=${encodeURIComponent(movieName)}`;
+                log(`📡 URL: ${url}`);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                log(`📊 Status: ${response.status} ${response.statusText}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`📦 Response: ${JSON.stringify(data, null, 2)}`);
+                
+                if (data.success && data.data && Array.isArray(data.data)) {
+                    log(`✅ Found ${data.data.length} results on page ${data.currentPage} of ${data.totalPages}`);
+                    data.data.forEach((item, index) => {
+                        log(`  ${index + 1}. ${item.title} (${item.type}) - ${item.quality} - ${item.year} - IMDB: ${item.imdb}`);
+                        log(`      Duration: ${item.duration} | Link: ${item.link}`);
+                    });
+                } else {
+                    log(`⚠️ No results found or API returned error`);
+                    log(`📦 Success: ${data.success}, Query: ${data.query}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function testTrending() {
+            log(`🔥 Testing trending movies`);
+            
+            try {
+                const url = 'http://127.0.0.1:5000/home?suggest=trending';
+                log(`📡 URL: ${url}`);
+                
+                const response = await fetch(url);
+                log(`📊 Status: ${response.status} ${response.statusText}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`📦 Response: ${JSON.stringify(data, null, 2)}`);
+                
+                if (data.success && data.data && Array.isArray(data.data)) {
+                    log(`✅ Found ${data.data.length} trending items`);
+                    data.data.slice(0, 5).forEach((item, index) => {
+                        log(`  ${index + 1}. ${item.title} (${item.type}) - ${item.quality} - IMDB: ${item.imdb}`);
+                    });
+                }
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        }
+
+        // Auto-test on load
+        window.onload = () => {
+            log('🚀 Page loaded');
+            setTimeout(() => testAPI('Fight Club'), 1000);
+        };
+    </script>
+</body>
+</html>
