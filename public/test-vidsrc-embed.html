@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidSrc-embed.ru Test</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .player {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .example {
+            margin: 30px 0;
+            padding: 20px;
+            background: #111;
+            border-radius: 10px;
+        }
+        .url {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VidSrc-embed.ru Integration Test</h1>
+        
+        <div class="example">
+            <h2>Movie Example: Fast X (2023)</h2>
+            <p>TMDB ID: 385687</p>
+            <div class="url">https://vidsrc-embed.ru/embed/movie?tmdb=385687&autoplay=1</div>
+            <iframe 
+                class="player"
+                src="https://vidsrc-embed.ru/embed/movie?tmdb=385687&autoplay=1"
+                allowfullscreen
+                webkitallowfullscreen
+                mozallowfullscreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+
+        <div class="example">
+            <h2>TV Show Example: Game of Thrones S1E1</h2>
+            <p>TMDB ID: 1399</p>
+            <div class="url">https://vidsrc-embed.ru/embed/tv?tmdb=1399&season=1&episode=1&autoplay=1</div>
+            <iframe 
+                class="player"
+                src="https://vidsrc-embed.ru/embed/tv?tmdb=1399&season=1&episode=1&autoplay=1"
+                allowfullscreen
+                webkitallowfullscreen
+                mozallowfullscreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+
+        <div class="example">
+            <h2>Movie Example: Spider-Man: No Way Home</h2>
+            <p>TMDB ID: 634649</p>
+            <div class="url">https://vidsrc-embed.ru/embed/movie?tmdb=634649&autoplay=1</div>
+            <iframe 
+                class="player"
+                src="https://vidsrc-embed.ru/embed/movie?tmdb=634649&autoplay=1"
+                allowfullscreen
+                webkitallowfullscreen
+                mozallowfullscreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+
+        <h2>API Documentation Summary</h2>
+        <ul>
+            <li><strong>Movie:</strong> https://vidsrc-embed.ru/embed/movie?tmdb={ID}&autoplay=1</li>
+            <li><strong>TV Show:</strong> https://vidsrc-embed.ru/embed/tv?tmdb={ID}&season={S}&episode={E}&autoplay=1</li>
+            <li><strong>Optional Parameters:</strong> ds_lang, sub_url, autonext</li>
+            <li><strong>Supports:</strong> TMDB IDs (recommended) or IMDB IDs</li>
+        </ul>
+    </div>
+</body>
+</html>
+</script>
