@@ -58,9 +58,9 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
   useEffect(() => {
     if (movieId) {
       if (isTV && season && episode) {
-        setStreamUrl(`https://live.kimostream.eu.org/tv/${movieId}/${season}/${episode}`)
+        setStreamUrl(`https://embed.kimostream.eu.org/tv/${movieId}/${season}/${episode}`)
       } else {
-        setStreamUrl(`https://live.kimostream.eu.org/movie/${movieId}`)
+        setStreamUrl(`https://embed.kimostream.eu.org/movie/${movieId}`)
       }
     } else if (videoUrl) {
       setStreamUrl(videoUrl)
