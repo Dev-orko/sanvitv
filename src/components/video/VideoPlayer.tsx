@@ -42,9 +42,44 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
   movieData
 }) => {
   const [streamUrl, setStreamUrl] = useState('')
+  const [currentSourceIndex, setCurrentSourceIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showControls, setShowControls] = useState(true)
   const hideControlsTimeout = useRef<number | null>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
+
+  // Multiple streaming sources with fallback
+  const streamingSources = [
+    {
+      name: 'VidSrc Pro',
+      getUrl: (id: string, isTV: boolean, season?: number, episode?: number) => 
+        isTV && season && episode 
+          ? `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`
+          : `https://vidsrc.pro/embed/movie/${id}`
+    },
+    {
+      name: 'VidSrc',
+      getUrl: (id: string, isTV: boolean, season?: number, episode?: number) => 
+        isTV && season && episode 
+          ? `https://vidsrc.xyz/embed/tv/${id}/${season}-${episode}`
+          : `https://vidsrc.xyz/embed/movie/${id}`
+    },
+    {
+      name: 'VidSrc To',
+      getUrl: (id: string, isTV: boolean, season?: number, episode?: number) => 
+        isTV && season && episode 
+          ? `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`
+          : `https://vidsrc.to/embed/movie/${id}`
+    },
+    {
+      name: '2Embed',
+      getUrl: (id: string, isTV: boolean, season?: number, episode?: number) => 
+        isTV && season && episode 
+          ? `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`
+          : `https://www.2embed.cc/embed/${id}`
+    }
+  ]
 
   // Lock body scroll when player is open
   useEffect(() => {
@@ -54,18 +89,40 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
     }
   }, [])
 
-  // Generate streaming URL using kimostream
+  // Generate streaming URL with fallback sources
   useEffect(() => {
     if (movieId) {
-      if (isTV && season && episode) {
-        setStreamUrl(`https://live.kimostream.eu.org/tv/${movieId}/${season}/${episode}`)
-      } else {
-        setStreamUrl(`https://live.kimostream.eu.org/movie/${movieId}`)
-      }
+      const source = streamingSources[currentSourceIndex]
+      const url = source.getUrl(movieId, !!isTV, season, episode)
+      setStreamUrl(url)
+      setIsLoading(true)
+      setError(null)
+      console.log(`🎬 Loading from ${source.name}:`, url)
     } else if (videoUrl) {
       setStreamUrl(videoUrl)
+      setIsLoading(true)
+      setError(null)
     }
-  }, [videoUrl, movieId, isTV, season, episode])
+  }, [videoUrl, movieId, isTV, season, episode, currentSourceIndex])
+
+  // Try next source on error
+  const handleTryNextSource = () => {
+    if (currentSourceIndex < streamingSources.length - 1) {
+      setCurrentSourceIndex(prev => prev + 1)
+    }
+  }
+
+  // Handle iframe load
+  const handleIframeLoad = () => {
+    setIsLoading(false)
+    setError(null)
+  }
+
+  // Handle iframe error
+  const handleIframeError = () => {
+    setIsLoading(false)
+    setError('Failed to load video. Try another source.')
+  }
 
   // Handle mouse movement for showing/hiding controls
   const handleMouseMove = () => {
@@ -134,8 +191,49 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
             >
               <div className="bg-gradient-to-b from-black/90 via-black/60 to-transparent p-3 sm:p-4 md:p-6">
                 <h2 className="text-white text-sm sm:text-base md:text-lg lg:text-xl font-bold drop-shadow-lg line-clamp-1">{title}</h2>
+                
+                {/* Source Selector */}
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-gray-400">Source:</span>
+                  <select 
+                    value={currentSourceIndex}
+                    onChange={(e) => setCurrentSourceIndex(Number(e.target.value))}
+                    className="bg-black/50 text-white text-xs px-2 py-1 rounded border border-gray-600 hover:border-red-500 transition-colors"
+                  >
+                    {streamingSources.map((source, index) => (
+                      <option key={index} value={index}>{source.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
+
+            {/* Loading Overlay */}
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
+                <div className="text-center">
+                  <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                  <p className="text-white text-sm">Loading {streamingSources[currentSourceIndex].name}...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Error Overlay */}
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40 p-4">
+                <div className="text-center max-w-md">
+                  <p className="text-red-500 text-sm mb-4">{error}</p>
+                  {currentSourceIndex < streamingSources.length - 1 && (
+                    <button
+                      onClick={handleTryNextSource}
+                      className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-full transition-colors"
+                    >
+                      Try Next Source
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Video iframe */}
             {streamUrl && (
@@ -145,6 +243,8 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 title={title}
+                onLoad={handleIframeLoad}
+                onError={handleIframeError}
               />
             )}
           </div>
