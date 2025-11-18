@@ -42,6 +42,7 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
   movieData
 }) => {
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showControls, setShowControls] = useState(true)
   const hideControlsTimeout = useRef<number | null>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
@@ -56,14 +57,25 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
   // Lock body scroll when player is open
   useEffect(() => {
     document.body.style.overflow = 'hidden'
+    console.log('🎬 Video Player URL:', streamUrl)
+    console.log('📊 Movie ID:', movieId, 'isTV:', isTV, 'Season:', season, 'Episode:', episode)
     return () => {
       document.body.style.overflow = 'unset'
     }
-  }, [])
+  }, [streamUrl, movieId, isTV, season, episode])
 
   // Handle iframe load
   const handleIframeLoad = () => {
     setIsLoading(false)
+    setError(null)
+    console.log('✅ Video loaded successfully')
+  }
+
+  // Handle iframe error
+  const handleIframeError = () => {
+    setIsLoading(false)
+    setError('Unable to load video. The streaming service may be temporarily unavailable.')
+    console.error('❌ Video failed to load from:', streamUrl)
   }
 
   // Handle mouse movement for showing/hiding controls
@@ -146,8 +158,25 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
               </div>
             )}
 
+            {/* Error Overlay */}
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40 p-4">
+                <div className="text-center max-w-md">
+                  <div className="text-red-500 text-4xl mb-4">⚠️</div>
+                  <p className="text-white text-sm mb-2">{error}</p>
+                  <p className="text-gray-400 text-xs mb-4">URL: {streamUrl}</p>
+                  <button
+                    onClick={() => window.open(streamUrl, '_blank')}
+                    className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-full transition-colors"
+                  >
+                    Open in New Tab
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Video iframe */}
-            {streamUrl && (
+            {streamUrl && !error && (
               <iframe
                 src={streamUrl}
                 className="w-full h-full border-0"
@@ -155,6 +184,8 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 title={title}
                 onLoad={handleIframeLoad}
+                onError={handleIframeError}
+                referrerPolicy="no-referrer"
               />
             )}
           </div>
