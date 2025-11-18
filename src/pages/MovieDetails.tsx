@@ -7,6 +7,7 @@ import { FiPlay, FiStar, FiCalendar, FiClock, FiHeart, FiPlus, FiShare2, FiUser,
 import VideoPlayer from '../components/video/VideoPlayer'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
+import { API_CONFIG } from '../config/api'
 
 interface Movie {
   id: number
@@ -94,7 +95,6 @@ const MovieDetails = () => {
   const [numberOfSeasons, setNumberOfSeasons] = useState(1)
   const [episodesInSeason, setEpisodesInSeason] = useState<number[]>([])
   const [similarMovies, setSimilarMovies] = useState<any[]>([])
-  const tmdbKey = import.meta.env.VITE_TMDB_API_KEY
   const isTV = location.pathname.includes('/tv/')
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -127,7 +127,7 @@ const MovieDetails = () => {
     const fetchMovie = async () => {
       try {
         const mediaType = isTV ? 'tv' : 'movie'
-        const url = `https://api.themoviedb.org/3/${mediaType}/${id}?api_key=${tmdbKey}`
+        const url = `${API_CONFIG.TMDB_BASE_URL}/${mediaType}/${id}?api_key=${API_CONFIG.TMDB_API_KEY}`
         console.log('🎬 Fetching movie details from TMDB:', url)
         
         const response = await axios.get(url)
@@ -151,7 +151,7 @@ const MovieDetails = () => {
         }
 
         // Fetch similar movies/shows
-        const similarUrl = `https://api.themoviedb.org/3/${mediaType}/${id}/similar?api_key=${tmdbKey}`
+        const similarUrl = `${API_CONFIG.TMDB_BASE_URL}/${mediaType}/${id}/similar?api_key=${API_CONFIG.TMDB_API_KEY}`
         const similarResponse = await axios.get(similarUrl)
         setSimilarMovies(similarResponse.data.results.slice(0, 12))
       } catch (error) {
@@ -199,7 +199,7 @@ const MovieDetails = () => {
       window.open = originalOpen;
       document.removeEventListener('click', handleClick, true);
     };
-  }, [id, tmdbKey, isTV])
+  }, [id, isTV])
 
   const handleSubmitComment = () => {
     if (!newComment.trim() || userRating === 0) return

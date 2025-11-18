@@ -3,6 +3,7 @@ import axios from 'axios'
 import useSWR from 'swr'
 import { useNavigate } from 'react-router-dom'
 import { FiPlay, FiTrendingUp, FiStar } from 'react-icons/fi'
+import { API_CONFIG } from '../config/api'
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data)
 
@@ -21,14 +22,13 @@ interface MediaItem {
 
 const NewAndPopular: React.FC = () => {
   const navigate = useNavigate()
-  const tmdbKey = import.meta.env.VITE_TMDB_API_KEY
   
   const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'topRated'>('trending')
 
   // Fetch different content based on active tab
-  const getTrendingUrl = () => `https://api.themoviedb.org/3/trending/all/week?api_key=${tmdbKey}`
-  const getNewUrl = () => `https://api.themoviedb.org/3/movie/now_playing?api_key=${tmdbKey}&region=US`
-  const getTopRatedUrl = () => `https://api.themoviedb.org/3/movie/top_rated?api_key=${tmdbKey}`
+  const getTrendingUrl = () => `${API_CONFIG.TMDB_BASE_URL}/trending/all/week?api_key=${API_CONFIG.TMDB_API_KEY}`
+  const getNewUrl = () => `${API_CONFIG.TMDB_BASE_URL}/movie/now_playing?api_key=${API_CONFIG.TMDB_API_KEY}&region=US`
+  const getTopRatedUrl = () => `${API_CONFIG.TMDB_BASE_URL}/movie/top_rated?api_key=${API_CONFIG.TMDB_API_KEY}`
 
   const { data: trendingData, error: trendingError, isLoading: trendingLoading } = useSWR(
     activeTab === 'trending' ? getTrendingUrl() : null,

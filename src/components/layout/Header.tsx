@@ -8,6 +8,7 @@ import {
   FiFilm, FiTv, FiTrendingUp, FiX, FiHome, FiClock, FiStar, FiDownload, FiPlay
 } from 'react-icons/fi';
 import axios from 'axios';
+import { API_CONFIG } from '../../config/api';
 
 // --- TYPE DEFINITIONS ---
 interface SearchResult {
@@ -147,7 +148,6 @@ const DesktopSearch = () => {
         return saved ? JSON.parse(saved) : MOCK_SEARCH_HISTORY;
     });
     const debouncedQuery = useDebounce(query, 500);
-    const tmdbKey = import.meta.env.VITE_TMDB_API_KEY;
 
     // Fetch search results from TMDB
     useEffect(() => {
@@ -161,7 +161,7 @@ const DesktopSearch = () => {
             setIsSearching(true);
             try {
                 const response = await axios.get(
-                    `https://api.themoviedb.org/3/search/multi?api_key=${tmdbKey}&query=${encodeURIComponent(debouncedQuery)}&page=1`
+                    `${API_CONFIG.TMDB_BASE_URL}/search/multi?api_key=${API_CONFIG.TMDB_API_KEY}&query=${encodeURIComponent(debouncedQuery)}&page=1`
                 );
                 const filtered = response.data.results
                     .filter((r: SearchResult) => r.media_type === 'movie' || r.media_type === 'tv')
@@ -176,7 +176,7 @@ const DesktopSearch = () => {
         };
 
         searchMovies();
-    }, [debouncedQuery, tmdbKey]);
+    }, [debouncedQuery]);
 
     const handleResultClick = (result: SearchResult) => {
         const title = result.title || result.name || '';

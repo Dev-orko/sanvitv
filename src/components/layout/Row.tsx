@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { FiPlay, FiPlus, FiStar } from 'react-icons/fi'
+import { API_CONFIG } from '../../config/api'
 
 const fetcher = (url: string) => axios.get(url).then(r => r.data)
 
@@ -113,10 +114,9 @@ MovieCard.displayName = 'MovieCard'
 
 const OptimizedRow = ({ title, endpoint }: RowProps) => {
   const navigate = useNavigate()
-  const tmdbKey = import.meta.env.VITE_TMDB_API_KEY
   
   const { data, error, isLoading } = useSWR(
-    endpoint ? `https://api.themoviedb.org/3${endpoint}?api_key=${tmdbKey}` : null,
+    endpoint ? `${API_CONFIG.TMDB_BASE_URL}${endpoint}?api_key=${API_CONFIG.TMDB_API_KEY}` : null,
     fetcher,
     {
       revalidateOnFocus: false,

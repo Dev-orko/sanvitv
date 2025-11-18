@@ -5,6 +5,7 @@ import Autoplay from 'embla-carousel-autoplay'
 import { FiPlay, FiInfo } from 'react-icons/fi'
 import useSWR from 'swr'
 import axios from 'axios'
+import { API_CONFIG } from '../../config/api'
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data)
 
@@ -85,10 +86,8 @@ const MovieSlide = memo(({ movie }: { movie: Movie }) => {
 MovieSlide.displayName = 'MovieSlide'
 
 const Hero: React.FC = () => {
-  const tmdbKey = import.meta.env.VITE_TMDB_API_KEY
-  
   const { data, error, isLoading } = useSWR<{ results: Movie[] }>(
-    `https://api.themoviedb.org/3/trending/all/day?api_key=${tmdbKey}`,
+    `${API_CONFIG.TMDB_BASE_URL}/trending/all/day?api_key=${API_CONFIG.TMDB_API_KEY}`,
     fetcher,
     { revalidateOnFocus: false }
   )

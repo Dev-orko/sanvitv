@@ -3,6 +3,7 @@ import axios from 'axios'
 import useSWR from 'swr'
 import { useNavigate } from 'react-router-dom'
 import { FiPlay, FiInfo, FiChevronDown } from 'react-icons/fi'
+import { API_CONFIG } from '../config/api'
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data)
 
@@ -42,7 +43,6 @@ const YEARS = Array.from({ length: 55 }, (_, i) => 2025 - i)
 
 const Movies: React.FC = () => {
   const navigate = useNavigate()
-  const tmdbKey = import.meta.env.VITE_TMDB_API_KEY
   
   const [selectedGenre, setSelectedGenre] = useState<number | null>(null)
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
@@ -50,7 +50,7 @@ const Movies: React.FC = () => {
 
   // Build API URL based on filters
   const getApiUrl = () => {
-    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${tmdbKey}&page=${page}&sort_by=popularity.desc`
+    let url = `${API_CONFIG.TMDB_BASE_URL}/discover/movie?api_key=${API_CONFIG.TMDB_API_KEY}&page=${page}&sort_by=popularity.desc`
     
     if (selectedGenre) {
       url += `&with_genres=${selectedGenre}`
