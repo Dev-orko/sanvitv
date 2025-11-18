@@ -47,11 +47,11 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
   const hideControlsTimeout = useRef<number | null>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
 
-  // Generate kimostream URL based on content type
+  // Generate streaming URL - Using VidSrc (more reliable for embedding)
   const streamUrl = movieId 
     ? (isTV && season !== undefined && episode !== undefined
-        ? `https://live.kimostream.eu.org/tv/${movieId}/${season}/${episode}`
-        : `https://live.kimostream.eu.org/movie/${movieId}`)
+        ? `https://vidsrc.xyz/embed/tv/${movieId}/${season}/${episode}`
+        : `https://vidsrc.xyz/embed/movie/${movieId}`)
     : videoUrl
 
   // Lock body scroll when player is open
