@@ -41,47 +41,31 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
   episode,
   movieData
 }) => {
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [streamUrl, setStreamUrl] = useState('')
   const [showControls, setShowControls] = useState(true)
   const hideControlsTimeout = useRef<number | null>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   // Lock body scroll when player is open
   useEffect(() => {
     document.body.style.overflow = 'hidden'
-    console.log('🎬 Video Player Loaded')
-    console.log('📺 Video URL:', videoUrl)
-    console.log('🎯 Movie ID:', movieId, '| isTV:', isTV, '| Season:', season, '| Episode:', episode)
-    
-    // Set a timeout to check if iframe loads
-    const timeout = setTimeout(() => {
-      if (isLoading) {
-        console.warn('⚠️ Iframe taking too long to load')
-      }
-    }, 5000)
-    
     return () => {
       document.body.style.overflow = 'unset'
-      clearTimeout(timeout)
     }
-  }, [videoUrl, movieId, isTV, season, episode, isLoading])
+  }, [])
 
-  // Handle iframe load
-  const handleIframeLoad = () => {
-    console.log('✅ Iframe loaded successfully')
-    setIsLoading(false)
-    setError(null)
-  }
-
-  // Handle iframe error
-  const handleIframeError = (e: any) => {
-    console.error('❌ Iframe failed to load:', e)
-    console.error('📍 Failed URL:', videoUrl)
-    setIsLoading(false)
-    setError('Unable to load video stream. The service may be temporarily unavailable.')
-  }
+  // Generate streaming URL using kimostream
+  useEffect(() => {
+    if (movieId) {
+      if (isTV && season && episode) {
+        setStreamUrl(`https://live.kimostream.eu.org/tv/${movieId}/${season}/${episode}`)
+      } else {
+        setStreamUrl(`https://live.kimostream.eu.org/movie/${movieId}`)
+      }
+    } else if (videoUrl) {
+      setStreamUrl(videoUrl)
+    }
+  }, [videoUrl, movieId, isTV, season, episode])
 
   // Handle mouse movement for showing/hiding controls
   const handleMouseMove = () => {
@@ -153,61 +137,14 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
               </div>
             </div>
 
-            {/* Loading Overlay */}
-            {isLoading && !error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
-                <div className="text-center">
-                  <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                  <p className="text-white text-sm">Loading video...</p>
-                  <p className="text-gray-500 text-xs mt-2">Connecting to stream...</p>
-                </div>
-              </div>
-            )}
-
-            {/* Error Overlay */}
-            {error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40 p-4">
-                <div className="text-center max-w-md">
-                  <div className="text-red-500 text-5xl mb-4">⚠️</div>
-                  <p className="text-white text-base font-semibold mb-2">{error}</p>
-                  <p className="text-gray-400 text-xs mb-4 break-all">URL: {videoUrl}</p>
-                  <div className="flex gap-3 justify-center">
-                    <button
-                      onClick={() => {
-                        setError(null)
-                        setIsLoading(true)
-                        if (iframeRef.current) {
-                          iframeRef.current.src = videoUrl
-                        }
-                      }}
-                      className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-full transition-colors"
-                    >
-                      Retry
-                    </button>
-                    <button
-                      onClick={() => window.open(videoUrl, '_blank')}
-                      className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-full transition-colors"
-                    >
-                      Open Direct
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Video iframe */}
-            {videoUrl && (
+            {streamUrl && (
               <iframe
-                ref={iframeRef}
-                src={videoUrl}
+                src={streamUrl}
                 className="w-full h-full border-0"
                 allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 title={title}
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation"
-                referrerPolicy="origin"
               />
             )}
           </div>
