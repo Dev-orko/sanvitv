@@ -94,7 +94,7 @@ const Logo = () => {
     >
       <div className="relative">
         {/* Netflix-style bold text - smaller on mobile */}
-        <span className="text-[18px] sm:text-[20px] md:text-[28px] font-black tracking-[-0.05em] leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontStretch: 'condensed', letterSpacing: '-0.02em' }}>
+        <span className="text-[18px] sm:text-[24px] md:text-[28px] font-black tracking-[-0.05em] leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontStretch: 'condensed', letterSpacing: '-0.02em' }}>
           <span className="text-[#E50914]">SanviTV</span>
         </span>
       </div>
@@ -681,9 +681,9 @@ export default function Header() {
                     borderBottom: isScrolled ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent'
                 }}
             >
-                <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 h-14 sm:h-16 md:h-20 max-w-7xl mx-auto">
+                <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 h-14 sm:h-18 md:h-20 max-w-7xl mx-auto">
                     {/* Left: Mobile Menu + Logo */}
-                    <div className="flex items-center gap-2 sm:gap-4 md:gap-8">
+                    <div className="flex items-center gap-2 sm:gap-8">
                         {/* Mobile Menu Button */}
                         <button 
                             onClick={() => setMobileMenuOpen(true)}

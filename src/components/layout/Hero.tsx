@@ -33,46 +33,46 @@ const MovieSlide = memo(({ movie }: { movie: Movie }) => {
     : 'https://via.placeholder.com/1920x1080/000000/666666?text=No+Image'
 
   return (
-    <div className="relative h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] w-full">
+    <div className="relative h-[70vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] w-full">
       {/* Background */}
       <img
         src={backdropUrl}
         alt={title}
         className="absolute inset-0 w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 mobile-padding sm:p-6 md:p-8 lg:p-12 xl:p-16 pb-safe">
+      <div className="absolute bottom-0 left-0 right-0 mobile-padding sm:p-6 md:p-8 lg:p-12 xl:p-16">
         <div className="max-w-3xl space-y-3 sm:space-y-4">
-          <h1 className="mobile-title sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white line-clamp-2 leading-tight">
+          <h1 className="mobile-title sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white line-clamp-2">
             {title}
           </h1>
           
           {year && (
-            <p className="mobile-subtitle sm:text-base md:text-lg text-gray-300 font-medium">{year}</p>
+            <p className="mobile-subtitle sm:text-base md:text-lg text-gray-300">{year}</p>
           )}
 
           {movie.overview && (
-            <p className="mobile-body sm:text-sm md:text-base lg:text-lg text-gray-300 line-clamp-2 sm:line-clamp-3 max-w-2xl leading-relaxed">
+            <p className="mobile-body sm:text-sm md:text-base lg:text-lg text-gray-300 line-clamp-2 sm:line-clamp-3 max-w-2xl">
               {movie.overview}
             </p>
           )}
 
-          <div className="flex flex-wrap gap-3 pt-3 sm:pt-4">
+          <div className="flex flex-wrap gap-2 sm:gap-3 pt-2 sm:pt-3 md:pt-4">
             <button
               onClick={() => navigate(`/${movie.media_type || 'movie'}/${movie.id}`)}
-              className="touch-target px-6 sm:px-8 py-3 sm:py-3.5 bg-white text-black mobile-subtitle sm:text-base font-bold rounded-lg hover:bg-gray-200 transition-all flex items-center gap-2 shadow-lg active:scale-95"
+              className="touch-target px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 bg-white text-black text-sm sm:text-base font-semibold rounded hover:bg-gray-200 transition flex items-center gap-2"
             >
-              <FiPlay className="w-5 h-5" />
+              <FiPlay className="w-4 h-4 sm:w-5 sm:h-5" />
               Play
             </button>
 
             <button
               onClick={() => navigate(`/${movie.media_type || 'movie'}/${movie.id}`)}
-              className="touch-target px-6 sm:px-8 py-3 sm:py-3.5 bg-white/20 backdrop-blur-md text-white mobile-subtitle sm:text-base font-bold rounded-lg hover:bg-white/30 transition-all flex items-center gap-2 shadow-lg active:scale-95"
+              className="touch-target px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 bg-gray-500/50 text-white text-sm sm:text-base font-semibold rounded hover:bg-gray-500/70 transition flex items-center gap-2"
             >
-              <FiInfo className="w-5 h-5" />
+              <FiInfo className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">More Info</span>
               <span className="sm:hidden">Info</span>
             </button>
@@ -114,16 +114,16 @@ const Hero: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] bg-black flex items-center justify-center">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-gray-600 border-t-white rounded-full animate-spin" />
+      <div className="h-[70vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] bg-black flex items-center justify-center">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 border-4 border-gray-600 border-t-white rounded-full animate-spin" />
       </div>
     )
   }
 
   if (error || !movies.length) {
     return (
-      <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] bg-black flex items-center justify-center">
-        <p className="text-white mobile-subtitle sm:text-lg md:text-xl">Unable to load content</p>
+      <div className="h-[70vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] bg-black flex items-center justify-center">
+        <p className="text-white text-base sm:text-lg md:text-xl">Unable to load content</p>
       </div>
     )
   }
@@ -140,18 +140,17 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
-      {/* Dots - Mobile optimized with larger touch targets */}
-      <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-2.5 pb-safe">
+      {/* Dots */}
+      <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2">
         {movies.map((_, index) => (
           <button
             key={index}
             onClick={() => emblaApi?.scrollTo(index)}
-            className={`transition-all touch-target ${
+            className={`transition-all ${
               index === selectedIndex
-                ? 'w-8 sm:w-10 h-2 bg-white shadow-lg'
-                : 'w-2 h-2 bg-gray-500/80 hover:bg-gray-400'
+                ? 'w-6 sm:w-8 h-1.5 sm:h-2 bg-white'
+                : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-gray-500 hover:bg-gray-400'
             } rounded-full`}
-            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>

@@ -37,7 +37,7 @@ const MovieCard = memo(({ movie, index, onPlay }: { movie: Movie; index: number;
       onClick={onPlay}
     >
       {/* Movie Card */}
-      <div className={`relative overflow-hidden rounded-lg sm:rounded-xl bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-sm border border-white/10 transition-all duration-300 transform active:scale-95 ${isHovered ? 'sm:scale-105 border-red-500/50 shadow-2xl shadow-red-500/20 sm:-translate-y-2' : ''}`}>
+      <div className={`relative overflow-hidden rounded-lg sm:rounded-xl bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-sm border border-white/10 transition-all duration-300 transform active:scale-95 ${isHovered ? 'scale-105 border-red-500/50 shadow-2xl shadow-red-500/20 -translate-y-2' : ''}`}>
         {/* Poster Container */}
         <div style={{ aspectRatio: '27/40' }} className="relative overflow-hidden">
           <img
@@ -51,9 +51,9 @@ const MovieCard = memo(({ movie, index, onPlay }: { movie: Movie; index: number;
             loading="lazy"
           />
 
-          {/* Hover Overlay - Desktop only */}
+          {/* Hover Overlay */}
           {isHovered && (
-            <div className="hidden sm:flex absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-center justify-center">
               <motion.button
                 initial={{ scale: 0, rotate: -90 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -70,18 +70,18 @@ const MovieCard = memo(({ movie, index, onPlay }: { movie: Movie; index: number;
           )}
 
           {/* Rating Badge */}
-          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-black/80 backdrop-blur-sm rounded-md sm:rounded-lg border border-red-500/30">
-            <div className="flex items-center space-x-0.5 sm:space-x-1">
-              <FiStar size={10} className="sm:w-3 sm:h-3 text-yellow-400" />
+          <div className="absolute top-3 right-3 px-2 py-1 bg-black/80 backdrop-blur-sm rounded-lg border border-red-500/30">
+            <div className="flex items-center space-x-1">
+              <FiStar size={12} className="text-yellow-400" />
               <span className="text-white text-xs sm:text-sm font-bold">
                 {movie.vote_average.toFixed(1)}
               </span>
             </div>
           </div>
 
-          {/* Quick Actions - Desktop only */}
+          {/* Quick Actions */}
           {isHovered && (
-            <div className="hidden sm:flex absolute bottom-3 left-3 right-3 justify-between">
+            <div className="absolute bottom-3 left-3 right-3 flex justify-between">
               <button
                 onClick={(e) => e.stopPropagation()}
                 className="p-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 hover:bg-red-500/50 transition-colors duration-200"
@@ -98,8 +98,8 @@ const MovieCard = memo(({ movie, index, onPlay }: { movie: Movie; index: number;
       </div>
 
       {/* Movie Info */}
-      <div className="mt-2 sm:mt-4 px-1">
-        <h3 className={`font-bold text-white mobile-body sm:text-sm mb-0.5 sm:mb-1 truncate transition-colors duration-200 ${isHovered ? 'sm:text-red-400' : ''}`}>
+      <div className="mt-4 px-1">
+        <h3 className={`font-bold text-white text-sm mb-1 truncate transition-colors duration-200 ${isHovered ? 'text-red-400' : ''}`}>
           {movie.title || movie.name}
         </h3>
         <p className="text-gray-400 text-xs">
@@ -159,18 +159,18 @@ const OptimizedRow = ({ title, endpoint }: RowProps) => {
   }
 
   return (
-    <section className="mb-8 sm:mb-12 md:mb-16">
+    <section className="mb-16">
       <div className="container mx-auto mobile-padding sm:px-6">
         {/* Section Title */}
-        <div className="mb-4 sm:mb-6 md:mb-8">
-          <h2 className="mobile-title sm:text-2xl md:text-3xl font-black text-white mb-2 sm:mb-3 relative">
+        <div className="mb-8">
+          <h2 className="text-3xl font-black text-white mb-3 relative">
             {title}
-            <div className="absolute -bottom-1 left-0 h-0.5 sm:h-1 bg-gradient-to-r from-red-500 to-red-600 w-16 sm:w-24 rounded-full" />
+            <div className="absolute -bottom-1 left-0 h-1 bg-gradient-to-r from-red-500 to-red-600 w-24 rounded-full" />
           </h2>
         </div>
 
-        {/* Movies Grid - Mobile optimized */}
-        <div className="mobile-card-grid tablet-grid-3 desktop-grid-6 gap-3 sm:gap-4 md:gap-6">
+        {/* Movies Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {filteredItems.slice(0, 18).map((movie: Movie, index: number) => (
             <MovieCard
               key={`${movie.id}-${index}`}
