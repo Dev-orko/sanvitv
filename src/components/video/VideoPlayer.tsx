@@ -54,13 +54,13 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
     }
   }, [])
 
-  // Generate streaming URL using BraFlix
+  // Generate streaming URL using Videasy
   useEffect(() => {
     if (movieId) {
       if (isTV && season && episode) {
-        setStreamUrl(`https://braflixtv.tube/tv-show/${movieId}/${season}/${episode}`)
+        setStreamUrl(`https://player.videasy.net/tv/${movieId}/${season}/${episode}`)
       } else {
-        setStreamUrl(`https://braflixtv.tube/movie/${movieId}`)
+        setStreamUrl(`https://player.videasy.net/movie/${movieId}`)
       }
     } else if (videoUrl) {
       setStreamUrl(videoUrl)
