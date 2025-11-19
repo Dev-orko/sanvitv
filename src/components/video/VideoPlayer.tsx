@@ -114,7 +114,7 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
             ref={playerContainerRef}
             className="relative bg-black shadow-2xl group w-full"
             style={{ 
-              height: 'clamp(250px, 50vh, 60vh)',
+              height: 'clamp(350px, 65vh, 75vh)',
               borderRadius: '8px',
               padding: '2px',
               background: 'linear-gradient(135deg, #dc2626, #000000, #dc2626)',
