@@ -16,7 +16,7 @@ function App() {
     <AuthProvider>
       <ErrorBoundary>
         <Router>
-          <div className="min-h-screen bg-black overflow-x-hidden">
+          <div className="min-h-screen bg-black overflow-x-hidden antialiased">
             <Routes>
               {/* Authentication routes (no header) */}
               <Route path="/login" element={<Login />} />
@@ -24,16 +24,18 @@ function App() {
               
               {/* Main app routes (with header) */}
               <Route path="/*" element={
-                <div>
+                <div className="flex flex-col min-h-screen">
                   <Header />
-                  <Routes>
-                    <Route path="/" element={<OptimizedHome />} />
-                    <Route path="/movies" element={<Movies />} />
-                    <Route path="/series" element={<Series />} />
-                    <Route path="/new-popular" element={<NewAndPopular />} />
-                    <Route path="/movie/:id" element={<MovieDetails />} />
-                    <Route path="/tv/:id" element={<MovieDetails />} />
-                  </Routes>
+                  <main className="flex-1 pb-safe">
+                    <Routes>
+                      <Route path="/" element={<OptimizedHome />} />
+                      <Route path="/movies" element={<Movies />} />
+                      <Route path="/series" element={<Series />} />
+                      <Route path="/new-popular" element={<NewAndPopular />} />
+                      <Route path="/movie/:id" element={<MovieDetails />} />
+                      <Route path="/tv/:id" element={<MovieDetails />} />
+                    </Routes>
+                  </main>
                 </div>
               } />
             </Routes>

@@ -90,11 +90,11 @@ const Logo = () => {
   return (
     <div
       onClick={handleLogoClick}
-      className="flex items-center cursor-pointer select-none"
+      className="flex items-center cursor-pointer select-none touch-target"
     >
       <div className="relative">
-        {/* Netflix-style bold text with condensed/tall appearance */}
-        <span className="text-[20px] sm:text-[24px] md:text-[28px] font-black tracking-[-0.05em] leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontStretch: 'condensed', letterSpacing: '-0.02em' }}>
+        {/* Netflix-style bold text - smaller on mobile */}
+        <span className="text-[18px] sm:text-[20px] md:text-[28px] font-black tracking-[-0.05em] leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontStretch: 'condensed', letterSpacing: '-0.02em' }}>
           <span className="text-[#E50914]">SanviTV</span>
         </span>
       </div>
@@ -375,52 +375,344 @@ const ProfilePanel = ({ onClose, user }: { onClose: () => void, user: User }) =>
 };
 
 
+// Mobile Menu Component
+const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    
+    const menuItems = [
+      { icon: FiHome, label: 'Home', path: '/' },
+      { icon: FiFilm, label: 'Movies', path: '/movies' },
+      { icon: FiTv, label: 'Series', path: '/series' },
+      { icon: FiTrendingUp, label: 'New & Popular', path: '/new-popular' },
+      { icon: FiHeart, label: 'My Watchlist', path: '/watchlist' },
+      { icon: FiDownload, label: 'Downloads', path: '/downloads' },
+      { icon: FiSettings, label: 'Settings', path: '/settings' },
+    ];
+    
+    const handleNavigation = (path: string) => {
+        navigate(path);
+        onClose();
+    };
+    
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <MotionDiv
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 md:hidden"
+                    />
+                    
+                    {/* Slide-out Menu */}
+                    <MotionDiv
+                        initial={{ x: '-100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '-100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        className="fixed left-0 top-0 bottom-0 w-[85vw] max-w-[320px] bg-neutral-900 z-50 md:hidden overflow-y-auto hide-scrollbar-mobile"
+                    >
+                        {/* Header */}
+                        <div className="p-4 border-b border-neutral-800 flex items-center justify-between sticky top-0 bg-neutral-900 z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-lg">
+                                    {MOCK_USER.avatarInitial}
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-white text-sm line-clamp-1">{MOCK_USER.name}</h3>
+                                    <p className="text-neutral-400 text-xs">{MOCK_USER.plan}</p>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-800 transition-colors touch-target">
+                                <FiX className="text-white" size={22} />
+                            </button>
+                        </div>
+                        
+                        {/* Navigation Items */}
+                        <div className="p-2 mt-2">
+                            {menuItems.map((item, index) => {
+                                const isActive = location.pathname === item.path;
+                                return (
+                                    <MotionDiv
+                                        key={item.path}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                    >
+                                        <button
+                                            onClick={() => handleNavigation(item.path)}
+                                            className={`w-full flex items-center gap-4 p-4 rounded-lg transition-colors touch-target ${
+                                                isActive 
+                                                    ? 'bg-red-600 text-white' 
+                                                    : 'text-neutral-300 hover:bg-neutral-800'
+                                            }`}
+                                        >
+                                            <item.icon size={22} />
+                                            <span className="font-medium text-base">{item.label}</span>
+                                        </button>
+                                    </MotionDiv>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className="p-4 mt-auto border-t border-neutral-800">
+                            <button className="w-full flex items-center gap-4 p-4 rounded-lg text-red-500 hover:bg-neutral-800 transition-colors touch-target">
+                                <FiLogOut size={22} />
+                                <span className="font-medium text-base">Sign Out</span>
+                            </button>
+                        </div>
+                    </MotionDiv>
+                </>
+            )}
+        </AnimatePresence>
+    );
+};
+
+// Mobile Search Modal
+const MobileSearch = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const navigate = useNavigate();
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState<SearchResult[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+        const saved = localStorage.getItem('searchHistory');
+        return saved ? JSON.parse(saved) : MOCK_SEARCH_HISTORY;
+    });
+    const debouncedQuery = useDebounce(query, 500);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isOpen && inputRef.current) {
+            setTimeout(() => inputRef.current?.focus(), 100);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (!debouncedQuery || debouncedQuery.trim().length < 2) {
+            setResults([]);
+            setIsSearching(false);
+            return;
+        }
+
+        const searchMovies = async () => {
+            setIsSearching(true);
+            try {
+                const response = await axios.get(
+                    `${API_CONFIG.TMDB_BASE_URL}/search/multi?api_key=${API_CONFIG.TMDB_API_KEY}&query=${encodeURIComponent(debouncedQuery)}&page=1`
+                );
+                const filtered = response.data.results
+                    .filter((r: SearchResult) => r.media_type === 'movie' || r.media_type === 'tv')
+                    .slice(0, 10);
+                setResults(filtered);
+            } catch (error) {
+                console.error('Search error:', error);
+                setResults([]);
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        searchMovies();
+    }, [debouncedQuery]);
+
+    const handleResultClick = (result: SearchResult) => {
+        const title = result.title || result.name || '';
+        
+        const newHistory = [title, ...searchHistory.filter(h => h !== title)].slice(0, 5);
+        setSearchHistory(newHistory);
+        localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+        
+        navigate(`/${result.media_type}/${result.id}`);
+        setQuery('');
+        onClose();
+    };
+
+    const handleHistoryClick = (term: string) => {
+        setQuery(term);
+    };
+
+    const clearHistory = () => {
+        setSearchHistory([]);
+        localStorage.removeItem('searchHistory');
+    };
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <MotionDiv
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-neutral-900 z-50 md:hidden flex flex-col"
+                >
+                    {/* Search Header */}
+                    <div className="flex items-center gap-3 p-4 border-b border-neutral-800">
+                        <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-800 transition-colors touch-target">
+                            <FiX className="text-white" size={22} />
+                        </button>
+                        <div className="flex-1 relative">
+                            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                placeholder="Search movies & series..."
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                className="w-full h-12 pl-12 pr-4 bg-neutral-800 text-white text-base placeholder-neutral-500 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 touch-target"
+                            />
+                        </div>
+                    </div>
+                    
+                    {/* Search Results */}
+                    <div className="flex-1 overflow-y-auto hide-scrollbar-mobile">
+                        {isSearching ? (
+                            <div className="flex items-center justify-center p-12">
+                                <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : results.length > 0 ? (
+                            <div className="p-2">
+                                {results.map(result => (
+                                    <div 
+                                        key={result.id} 
+                                        onClick={() => handleResultClick(result)}
+                                        className="flex items-center gap-4 p-4 hover:bg-neutral-800 rounded-lg cursor-pointer transition-colors touch-target"
+                                    >
+                                        {result.poster_path ? (
+                                            <img 
+                                                src={`https://image.tmdb.org/t/p/w92${result.poster_path}`} 
+                                                alt={result.title || result.name} 
+                                                className="w-12 h-16 object-cover rounded"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-16 bg-neutral-700 rounded flex items-center justify-center">
+                                                {result.media_type === 'tv' ? <FiTv className="text-neutral-500" size={20} /> : <FiFilm className="text-neutral-500" size={20} />}
+                                            </div>
+                                        )}
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-white text-base line-clamp-1">{result.title || result.name}</p>
+                                            <p className="text-sm text-neutral-400">
+                                                {result.media_type === 'tv' ? 'TV Series' : 'Movie'}
+                                                {result.release_date && ` • ${result.release_date.split('-')[0]}`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : query.length > 1 ? (
+                            <div className="text-center p-12">
+                                <FiSearch className="mx-auto text-neutral-600 mb-3" size={40} />
+                                <p className="text-neutral-400">No results for "{query}"</p>
+                            </div>
+                        ) : (
+                            <div className="p-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-sm font-semibold text-neutral-400 uppercase">Recent Searches</h4>
+                                    {searchHistory.length > 0 && (
+                                        <button 
+                                            onClick={clearHistory}
+                                            className="text-sm text-neutral-500 hover:text-red-500 transition-colors touch-target"
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                                {searchHistory.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {searchHistory.map((term, idx) => (
+                                            <div 
+                                                key={idx} 
+                                                onClick={() => handleHistoryClick(term)}
+                                                className="flex items-center gap-4 p-4 hover:bg-neutral-800 rounded-lg cursor-pointer text-base text-neutral-200 touch-target"
+                                            >
+                                                <FiClock className="text-neutral-500" size={20} />
+                                                <span>{term}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-center text-neutral-500 p-8">No recent searches</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </MotionDiv>
+            )}
+        </AnimatePresence>
+    );
+};
+
+
 // --- MAIN HEADER COMPONENT ---
 
 export default function Header() {
     const scrollPosition = useScrollPosition();
     const [openDropdown, setOpenDropdown] = useState<'notifications' | 'profile' | null>(null);
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isMobileSearchOpen, setMobileSearchOpen] = useState(false);
     
     const isScrolled = scrollPosition > 10;
     
     const closeAllPopups = useCallback(() => {
       setOpenDropdown(null);
       setMobileMenuOpen(false);
+      setMobileSearchOpen(false);
     }, []);
 
     const unreadCount = MOCK_NOTIFICATIONS.filter(n => !n.read).length;
 
     return (
         <>
+            {/* Mobile Menu */}
+            <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+            
+            {/* Mobile Search */}
+            <MobileSearch isOpen={isMobileSearchOpen} onClose={() => setMobileSearchOpen(false)} />
+            
             <MotionDiv 
                 className={`fixed top-0 left-0 right-0 z-40 transition-colors duration-300`}
                 animate={{
-                    background: isScrolled ? 'rgba(10, 10, 10, 0.7)' : 'linear-gradient(180deg, rgba(10,10,10,0.7) 0%, transparent 100%)',
-                    backdropFilter: isScrolled ? 'blur(20px)' : 'blur(0px)',
+                    background: isScrolled ? 'rgba(10, 10, 10, 0.95)' : 'linear-gradient(180deg, rgba(10,10,10,0.8) 0%, transparent 100%)',
+                    backdropFilter: isScrolled ? 'blur(20px)' : 'blur(10px)',
                     borderBottom: isScrolled ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent'
                 }}
             >
-                <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 h-16 sm:h-18 md:h-20 max-w-7xl mx-auto">
-                    <div className="flex items-center gap-8">
+                <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 h-14 sm:h-16 md:h-20 max-w-7xl mx-auto">
+                    {/* Left: Mobile Menu + Logo */}
+                    <div className="flex items-center gap-2 sm:gap-4 md:gap-8">
+                        {/* Mobile Menu Button */}
+                        <button 
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="md:hidden p-2 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target"
+                        >
+                            <FiMenu size={22} />
+                        </button>
+                        
                         <Logo />
                         <DesktopNav />
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+                    
+                    {/* Right: Search + Notifications + Profile */}
+                    <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
                         <DesktopSearch />
 
                         {/* Mobile Search Button */}
-                           <MotionButton 
-                           className="p-2 sm:p-2.5 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors md:hidden"
-                           whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                        <button 
+                            onClick={() => setMobileSearchOpen(true)}
+                            className="md:hidden p-2 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target"
                         >
-                            <FiSearch size={18} />
-                        </MotionButton>                        {/* Notifications */}
+                            <FiSearch size={20} />
+                        </button>
+                        
+                        {/* Notifications */}
                         <div className="relative">
-                           <MotionButton 
+                           <button 
                                 onClick={() => setOpenDropdown(p => p === 'notifications' ? null : 'notifications')} 
-                                className="p-2.5 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors"
-                                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                                className="p-2 sm:p-2.5 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target"
                             >
                                 {unreadCount > 0 && (
                                     <MotionDiv
@@ -430,7 +722,7 @@ export default function Header() {
                                     </MotionDiv>
                                 )}
                                 <FiBell size={20} />
-                            </MotionButton>
+                            </button>
                             <AnimatePresence>
                                 {openDropdown === 'notifications' && <NotificationPanel onClose={closeAllPopups} />}
                             </AnimatePresence>
@@ -438,22 +730,16 @@ export default function Header() {
                         
                         {/* Profile */}
                         <div className="relative">
-                            <MotionButton 
+                            <button 
                                 onClick={() => setOpenDropdown(p => p === 'profile' ? null : 'profile')} 
-                                className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-lg" 
-                                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-base sm:text-lg touch-target"
                             >
                                 {MOCK_USER.avatarInitial}
-                            </MotionButton>
+                            </button>
                              <AnimatePresence>
                                 {openDropdown === 'profile' && <ProfilePanel onClose={closeAllPopups} user={MOCK_USER} />}
                             </AnimatePresence>
                         </div>
-
-                        {/* Mobile Menu Button */}
-                        <MotionButton className="md:hidden p-2.5 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setMobileMenuOpen(true)}>
-                            <FiMenu size={20} />
-                        </MotionButton>
                     </div>
                 </div>
             </MotionDiv>

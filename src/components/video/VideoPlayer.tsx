@@ -97,27 +97,27 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 sm:p-4"
+      className="fixed inset-0 bg-black/98 z-50 flex items-center justify-center p-0 sm:p-4"
       onClick={handleBackdropClick}
     >
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-7xl max-h-[98vh] sm:max-h-[95vh] overflow-y-auto custom-scrollbar"
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full h-full sm:h-auto sm:max-w-7xl sm:max-h-[95vh] overflow-y-auto custom-scrollbar"
       >
           {/* Close Button - Removed */}
 
           {/* Video Player Container */}
           <div 
             ref={playerContainerRef}
-            className="relative bg-black shadow-2xl group w-full"
+            className="relative bg-black shadow-2xl group w-full h-full sm:h-auto"
             style={{ 
-              height: 'clamp(350px, 65vh, 75vh)',
-              borderRadius: '8px',
-              padding: '2px',
-              background: 'linear-gradient(135deg, #dc2626, #000000, #dc2626)',
+              height: window.innerWidth < 640 ? '100vh' : 'clamp(350px, 65vh, 75vh)',
+              borderRadius: window.innerWidth < 640 ? '0' : '8px',
+              padding: window.innerWidth < 640 ? '0' : '2px',
+              background: window.innerWidth < 640 ? '#000' : 'linear-gradient(135deg, #dc2626, #000000, #dc2626)',
               overflow: 'hidden'
             }}
             onMouseMove={handleMouseMove}
