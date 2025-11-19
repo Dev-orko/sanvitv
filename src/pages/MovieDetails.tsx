@@ -394,16 +394,23 @@ const MovieDetails = () => {
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   <button
                     onClick={() => {
-                      const kimoUrl = isTV 
-                        ? `https://live.kimostream.eu.org/tv/${id}/${selectedSeason}/${selectedEpisode}`
-                        : `https://live.kimostream.eu.org/movie/${id}`
+                      const vidSrcUrl = isTV 
+                        ? `https://vidsrc.to/embed/tv/${id}/${selectedSeason}/${selectedEpisode}`
+                        : `https://vidsrc.to/embed/movie/${id}`
                       
                       console.log('🎬 Opening video in new window')
-                      console.log('📺 URL:', kimoUrl)
+                      console.log('📺 URL:', vidSrcUrl)
                       console.log('🎯 Movie ID:', id, '| isTV:', isTV)
                       
-                      // Open in new window with full screen option
-                      window.open(kimoUrl, '_blank', 'width=1280,height=720,fullscreen=yes')
+                      // Open in new window
+                      const newWindow = window.open(vidSrcUrl, '_blank', 'width=1280,height=720')
+                      
+                      if (!newWindow) {
+                        alert('Please allow pop-ups to watch the video')
+                        console.error('❌ Pop-up blocked! Allow pop-ups and try again.')
+                      } else {
+                        console.log('✅ Video window opened successfully')
+                      }
                     }}
                     className="flex items-center gap-2 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-red-600 hover:bg-red-700 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all shadow-2xl hover:scale-105 active:scale-95"
                   >
