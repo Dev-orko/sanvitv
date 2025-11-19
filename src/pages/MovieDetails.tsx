@@ -246,7 +246,11 @@ const MovieDetails = () => {
       {/* Enhanced Video Player */}
       {isPlaying && movie && playerPortalEl && ReactDOM.createPortal(
         <VideoPlayer
-          videoUrl={`https://fmoviesunblocked.net/spa/videoPlayPage/${isTV ? 'tv' : 'movies'}?id=${id}${isTV ? `&season=${selectedSeason}&episode=${selectedEpisode}` : ''}`}
+          videoUrl={
+            isTV 
+              ? `https://live.kimostream.eu.org/tv/${id}/${selectedSeason}/${selectedEpisode}`
+              : `https://live.kimostream.eu.org/movie/${id}`
+          }
           title={movie.title || movie.name || 'Video'}
           poster={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : undefined}
           movieId={id}
