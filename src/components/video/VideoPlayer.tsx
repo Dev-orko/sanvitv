@@ -54,13 +54,13 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
     }
   }, [])
 
-  // Generate streaming URL using kimostream
+  // Generate streaming URL using BraFlix
   useEffect(() => {
     if (movieId) {
       if (isTV && season && episode) {
-        setStreamUrl(`https://live.kimostream.eu.org/tv/${movieId}/${season}/${episode}`)
+        setStreamUrl(`https://braflixtv.tube/tv-show/${movieId}/${season}/${episode}`)
       } else {
-        setStreamUrl(`https://live.kimostream.eu.org/movie/${movieId}`)
+        setStreamUrl(`https://braflixtv.tube/movie/${movieId}`)
       }
     } else if (videoUrl) {
       setStreamUrl(videoUrl)
