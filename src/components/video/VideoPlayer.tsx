@@ -42,12 +42,6 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
   movieData
 }) => {
   const [streamUrl, setStreamUrl] = useState('')
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [showControls, setShowControls] = useState(true)
-  const [isLoading, setIsLoading] = useState(true)
-  const hideControlsTimeout = useRef<number | null>(null)
-  const playerContainerRef = useRef<HTMLDivElement>(null)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   // Lock body scroll when player is open
   useEffect(() => {
@@ -59,7 +53,6 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
 
   // Generate streaming URL using Videasy
   useEffect(() => {
-    setIsLoading(true)
     if (movieId) {
       if (isTV && season && episode) {
         setStreamUrl(`https://player.videasy.net/tv/${movieId}/${season}/${episode}`)
@@ -71,41 +64,7 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
     }
   }, [videoUrl, movieId, isTV, season, episode])
 
-  // Handle iframe load
-  const handleIframeLoad = () => {
-    setIsLoading(false)
-  }
-
-  // Toggle fullscreen
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      playerContainerRef.current?.requestFullscreen()
-      setIsFullscreen(true)
-    } else {
-      document.exitFullscreen()
-      setIsFullscreen(false)
-    }
-  }
-
-  // Handle mouse movement for showing/hiding controls
-  const handleMouseMove = () => {
-    setShowControls(true)
-    
-    if (hideControlsTimeout.current) {
-      clearTimeout(hideControlsTimeout.current)
-    }
-
-    hideControlsTimeout.current = setTimeout(() => {
-      setShowControls(false)
-    }, 3000) as unknown as number
-  }
-
-  const handleMouseLeave = () => {
-    setShowControls(false)
-  }
-
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Only close if clicking the backdrop itself, not its children
     if (e.target === e.currentTarget) {
       onClose?.()
     }
@@ -116,116 +75,31 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 sm:p-4"
+      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
       onClick={handleBackdropClick}
     >
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-7xl max-h-[98vh] sm:max-h-[95vh] overflow-y-auto custom-scrollbar"
-      >
-          {/* Video Player Container */}
-          <div 
-            ref={playerContainerRef}
-            className="relative bg-black shadow-2xl group w-full rounded-xl overflow-hidden"
-            style={{ 
-              height: 'clamp(300px, 60vh, 80vh)',
-            }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-          >
-            {/* Modern Header with Glass Effect */}
-            <div 
-              className={`absolute top-0 left-0 right-0 z-50 transition-all duration-300 ${
-                showControls 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 -translate-y-full pointer-events-none'
-              }`}
-            >
-              <div className="bg-gradient-to-b from-black/80 via-black/50 to-transparent backdrop-blur-md p-4 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-white text-base md:text-xl lg:text-2xl font-bold drop-shadow-lg line-clamp-1 mb-1">
-                      {title}
-                    </h2>
-                    {isTV && season && episode && (
-                      <p className="text-gray-300 text-xs md:text-sm">
-                        Season {season} • Episode {episode}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="ml-4 p-2 md:p-3 bg-red-600 hover:bg-red-700 rounded-full transition-all transform hover:scale-110 active:scale-95 shadow-lg"
-                    aria-label="Close player"
-                  >
-                    <svg className="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
+      <div className="relative w-full h-full max-w-[1920px] max-h-[1080px]">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+        >
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-            {/* Loading Spinner */}
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-40">
-                <div className="text-center">
-                  <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-white text-sm md:text-base font-medium">Loading Player...</p>
-                </div>
-              </div>
-            )}
-
-            {/* Video iframe */}
-            {streamUrl && (
-              <iframe
-                ref={iframeRef}
-                src={streamUrl}
-                className="w-full h-full border-0"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                title={title}
-                onLoad={handleIframeLoad}
-                loading="eager"
-              />
-            )}
-
-            {/* Modern Bottom Controls Bar */}
-            <div 
-              className={`absolute bottom-0 left-0 right-0 z-50 transition-all duration-300 ${
-                showControls 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-full pointer-events-none'
-              }`}
-            >
-              <div className="bg-gradient-to-t from-black/80 via-black/50 to-transparent backdrop-blur-md p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={toggleFullscreen}
-                      className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
-                      aria-label="Toggle fullscreen"
-                    >
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {isFullscreen ? (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18h12M6 6h12" />
-                        ) : (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0-4h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                        )}
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="text-xs md:text-sm text-gray-300 font-medium">
-                    Powered by Videasy
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Video Player */}
+        {streamUrl && (
+          <iframe
+            src={streamUrl}
+            className="w-full h-full"
+            allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            title={title}
+          />
+        )}
+      </div>
 
           {/* Movie Description Section */}
           {movieData && (
