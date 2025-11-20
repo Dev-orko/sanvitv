@@ -22,8 +22,17 @@ interface Movie {
   media_type?: string
 }
 
-const MovieSlide = memo(({ movie }: { movie: Movie }) => {
+interface Video {
+  id: string
+  key: string
+  site: string
+  type: string
+}
+
+const MovieSlide = memo(({ movie, onReady }: { movie: Movie; onReady?: () => void }) => {
   const navigate = useNavigate()
+  const [trailerKey, setTrailerKey] = useState<string | null>(null)
+  const [hasNotified, setHasNotified] = useState(false)
 
   const title = movie.title || movie.name || 'Untitled'
   const year = (movie.release_date || movie.first_air_date || '').split('-')[0]
@@ -32,19 +41,85 @@ const MovieSlide = memo(({ movie }: { movie: Movie }) => {
     ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
     : 'https://via.placeholder.com/1920x1080/000000/666666?text=No+Image'
 
+  // Fetch trailer for this movie
+  useEffect(() => {
+    const fetchTrailer = async () => {
+      try {
+        const mediaType = movie.media_type || 'movie'
+        const response = await axios.get(
+          `${API_CONFIG.TMDB_BASE_URL}/${mediaType}/${movie.id}/videos?api_key=${API_CONFIG.TMDB_API_KEY}`
+        )
+        const videos = response.data.results as Video[]
+        const trailer = videos.find(
+          (video: Video) => video.type === 'Trailer' && video.site === 'YouTube'
+        )
+        if (trailer) {
+          setTrailerKey(trailer.key)
+        } else {
+          // No trailer, notify parent immediately
+          if (onReady && !hasNotified) {
+            setHasNotified(true)
+            onReady()
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch trailer:', error)
+        // On error, notify parent
+        if (onReady && !hasNotified) {
+          setHasNotified(true)
+          onReady()
+        }
+      }
+    }
+
+    fetchTrailer()
+  }, [movie.id, movie.media_type, onReady, hasNotified])
+
+  // Handle content load to notify parent
+  const handleContentLoad = () => {
+    if (onReady && !hasNotified) {
+      setHasNotified(true)
+      onReady()
+    }
+  }
+
   return (
-    <div className="relative h-[75vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] w-full overflow-hidden">
+    <div className="relative h-[65vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] w-full overflow-hidden">
       {/* Background with scale effect for professional look */}
       <div className="absolute inset-0 scale-105">
-        <img
-          src={backdropUrl}
-          alt={title}
-          className="w-full h-full object-cover"
-        />
+        {trailerKey ? (
+          // YouTube trailer video
+          <iframe
+            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&loop=1&playlist=${trailerKey}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
+            title={`${title} Trailer`}
+            className="w-full h-full object-cover pointer-events-none"
+            style={{
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%) scale(1.5)',
+              border: 'none'
+            }}
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            onLoad={handleContentLoad}
+          />
+        ) : (
+          // Fallback to backdrop image
+          <img
+            src={backdropUrl}
+            alt={title}
+            className="w-full h-full object-cover"
+            onLoad={handleContentLoad}
+          />
+        )}
       </div>
       
-      {/* Enhanced gradient overlay for mobile */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30 sm:from-black sm:via-black/50 sm:to-transparent" />
+      {/* Enhanced gradient overlay with red accent using blend mode */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-red-900 via-red-950/50 to-transparent mix-blend-screen opacity-60" />
       <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 sm:hidden" />
 
       {/* Rating Badge - Mobile positioned top right */}
@@ -62,7 +137,7 @@ const MovieSlide = memo(({ movie }: { movie: Movie }) => {
         <div className="mobile-padding-sm sm:p-6 md:p-8 lg:p-12 xl:p-16 pb-20 sm:pb-16">
           <div className="max-w-3xl space-y-2.5 sm:space-y-4">
             {/* Title with better mobile sizing */}
-            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white line-clamp-2 leading-tight drop-shadow-2xl">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white line-clamp-2 leading-tight" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 4px 16px rgba(0, 0, 0, 0.6)' }}>
               {title}
             </h1>
             
@@ -82,18 +157,18 @@ const MovieSlide = memo(({ movie }: { movie: Movie }) => {
               )}
             </div>
 
-            {/* Overview - Better for mobile */}
+            {/* Overview - Better mobile readability */}
             {movie.overview && (
-              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-200 line-clamp-2 sm:line-clamp-3 max-w-2xl leading-relaxed drop-shadow-lg">
+              <p className="text-sm sm:text-sm md:text-base lg:text-lg text-gray-200 line-clamp-2 sm:line-clamp-3 max-w-2xl leading-relaxed drop-shadow-lg mb-1 sm:mb-0">
                 {movie.overview}
               </p>
             )}
 
-            {/* Buttons - Enhanced mobile design */}
-            <div className="flex flex-wrap gap-3 pt-3 sm:pt-4">
+            {/* Buttons - Mobile-first design */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-4 w-full sm:w-auto">
               <button
                 onClick={() => navigate(`/${movie.media_type || 'movie'}/${movie.id}`)}
-                className="touch-target flex-1 sm:flex-none px-5 sm:px-6 md:px-8 py-3 sm:py-2.5 md:py-3 bg-white text-black text-sm sm:text-base font-bold rounded-lg sm:rounded hover:bg-gray-200 transition-all flex items-center justify-center gap-2 shadow-2xl active:scale-95"
+                className="touch-target w-full sm:w-auto px-6 sm:px-6 md:px-8 py-3.5 sm:py-2.5 md:py-3 bg-white text-black text-base sm:text-base font-bold rounded-xl sm:rounded-lg hover:bg-gray-200 transition-all flex items-center justify-center gap-2.5 shadow-2xl active:scale-95"
               >
                 <FiPlay className="w-5 h-5" />
                 <span>Play Now</span>
@@ -101,11 +176,10 @@ const MovieSlide = memo(({ movie }: { movie: Movie }) => {
 
               <button
                 onClick={() => navigate(`/${movie.media_type || 'movie'}/${movie.id}`)}
-                className="touch-target flex-1 sm:flex-none px-5 sm:px-6 md:px-8 py-3 sm:py-2.5 md:py-3 bg-white/10 backdrop-blur-md text-white text-sm sm:text-base font-bold rounded-lg sm:rounded hover:bg-white/20 transition-all flex items-center justify-center gap-2 border border-white/20 shadow-xl active:scale-95"
+                className="touch-target w-full sm:w-auto px-6 sm:px-6 md:px-8 py-3.5 sm:py-2.5 md:py-3 bg-white/10 backdrop-blur-md text-white text-base sm:text-base font-bold rounded-xl sm:rounded-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2.5 border border-white/20 shadow-xl active:scale-95"
               >
                 <FiInfo className="w-5 h-5" />
-                <span className="hidden sm:inline">More Info</span>
-                <span className="sm:hidden">Info</span>
+                <span>More Info</span>
               </button>
             </div>
           </div>
@@ -132,6 +206,7 @@ const Hero: React.FC = () => {
   )
 
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [isContentReady, setIsContentReady] = useState(false)
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return
@@ -146,27 +221,25 @@ const Hero: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-[70vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] bg-black flex items-center justify-center">
-        <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 border-4 border-gray-600 border-t-white rounded-full animate-spin" />
-      </div>
+      <div className="h-[65vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] bg-black" />
     )
   }
 
   if (error || !movies.length) {
     return (
-      <div className="h-[70vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] bg-black flex items-center justify-center">
+      <div className="h-[65vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] bg-black flex items-center justify-center">
         <p className="text-white text-base sm:text-lg md:text-xl">Unable to load content</p>
       </div>
     )
   }
 
   return (
-    <div className="relative">
+    <div className={`relative transition-opacity duration-1000 ${isContentReady ? 'opacity-100' : 'opacity-0'}`}>
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          {movies.map((movie) => (
+          {movies.map((movie, index) => (
             <div key={movie.id} className="flex-[0_0_100%] min-w-0">
-              <MovieSlide movie={movie} />
+              <MovieSlide movie={movie} onReady={index === 0 ? () => setIsContentReady(true) : undefined} />
             </div>
           ))}
         </div>

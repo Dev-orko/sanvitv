@@ -5,7 +5,7 @@ const MotionDiv = motion.div as any;
 const MotionButton = motion.button as any;
 import {
   FiSearch, FiUser, FiBell, FiMenu, FiSettings, FiLogOut, FiHeart, 
-  FiFilm, FiTv, FiTrendingUp, FiX, FiHome, FiClock, FiStar, FiDownload, FiPlay, FiRadio
+  FiFilm, FiTv, FiTrendingUp, FiX, FiHome, FiClock, FiStar, FiDownload, FiPlay, FiRadio, FiAward
 } from 'react-icons/fi';
 import axios from 'axios';
 import { API_CONFIG } from '../../config/api';
@@ -81,10 +81,17 @@ const useDebounce = <T,>(value: T, delay: number): T => {
 
 const Logo = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   const handleLogoClick = () => {
-    navigate('/');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (location.pathname === '/') {
+      // If already on homepage, reload and scroll to top
+      window.location.reload();
+    } else {
+      // Navigate to homepage
+      navigate('/');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -306,13 +313,34 @@ const DesktopSearch = () => {
 };
 
 const DropdownPanel = ({ children, onClose }: { children: React.ReactNode, onClose: () => void }) => {
+    const panelRef = useRef<HTMLDivElement>(null);
+    
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+    
     return (
         <MotionDiv
+            ref={panelRef}
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className="absolute top-full right-0 mt-2 sm:mt-4 w-[calc(100vw-2rem)] max-w-[360px] sm:max-w-[400px] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl z-50 bg-neutral-900/80 backdrop-blur-xl border border-neutral-700"
+            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+            className="absolute top-full right-0 mt-3 w-[calc(100vw-2rem)] max-w-[360px] sm:max-w-[400px] rounded-2xl overflow-hidden shadow-2xl z-[110]"
+            style={{
+                background: 'rgba(10, 10, 10, 0.75)',
+                backdropFilter: 'blur(40px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 25px 70px rgba(0, 0, 0, 0.7), 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+            }}
         >
             {children}
         </MotionDiv>
@@ -320,63 +348,197 @@ const DropdownPanel = ({ children, onClose }: { children: React.ReactNode, onClo
 };
 
 const NotificationPanel = ({ onClose }: { onClose: () => void }) => {
-    // Component content remains largely the same, but with refined styling
-    // This is mostly to demonstrate structure; styles would be in className
+    const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+    
+    const markAsRead = (id: number) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    };
+    
+    const unreadCount = notifications.filter(n => !n.read).length;
+    
     return (
         <DropdownPanel onClose={onClose}>
-            <div className="p-3 sm:p-4 border-b border-neutral-700 flex items-center justify-between">
-                <h3 className="font-bold text-white text-base sm:text-lg">Notifications</h3>
-                <button onClick={onClose} className="p-1.5 rounded-full hover:bg-neutral-700 transition-colors text-neutral-400 hover:text-white"><FiX size={18} /></button>
+            {/* Header */}
+            <div className="p-4 flex items-center justify-between border-b border-neutral-800/30">
+                <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-white text-base">Notifications</h3>
+                    {unreadCount > 0 && (
+                        <span className="px-2 py-0.5 bg-red-600 rounded-full text-[10px] font-bold text-white">
+                            {unreadCount}
+                        </span>
+                    )}
+                </div>
             </div>
-            <div className="max-h-[70vh] sm:max-h-96 overflow-y-auto scrollbar-hide custom-scrollbar">
-                {MOCK_NOTIFICATIONS.map((n, i) => (
-                     <MotionDiv key={n.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                         className={`p-4 border-b border-neutral-800 cursor-pointer transition-colors hover:bg-neutral-800 ${!n.read ? 'bg-red-600/5' : ''}`}>
-                         {/* ... Notification item JSX ... */}
-                     </MotionDiv>
-                ))}
+            
+            {/* Notifications List */}
+            <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-red-900/30 scrollbar-track-transparent p-2">
+                {notifications.length > 0 ? (
+                    notifications.map((n, i) => (
+                        <MotionDiv 
+                            key={n.id} 
+                            initial={{ opacity: 0, x: -10 }} 
+                            animate={{ opacity: 1, x: 0 }} 
+                            transition={{ delay: i * 0.05, type: 'spring', stiffness: 300, damping: 20 }}
+                            className="group relative mb-2 last:mb-0"
+                        >
+                            <motion.div
+                                className="p-3 rounded-lg cursor-pointer overflow-hidden relative"
+                                onClick={() => markAsRead(n.id)}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    border: !n.read ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)'
+                                }}
+                            >
+                                {/* Red accent bar for unread */}
+                                {!n.read && (
+                                    <motion.div 
+                                        className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-red-500 to-red-600"
+                                        initial={{ scaleY: 0 }}
+                                        animate={{ scaleY: 1 }}
+                                        transition={{ delay: i * 0.05 + 0.2 }}
+                                    />
+                                )}
+                                
+                                <div className="flex items-start gap-3 relative z-10">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h4 className="font-medium text-white text-sm line-clamp-1 flex-1">
+                                                {n.title}
+                                            </h4>
+                                            {!n.read && (
+                                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                                            )}
+                                        </div>
+                                        <p className="text-neutral-400 text-xs mb-1.5 line-clamp-1">
+                                            {n.message}
+                                        </p>
+                                        <span className="text-[10px] text-neutral-600">{n.time}</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </MotionDiv>
+                    ))
+                ) : (
+                    <div className="flex flex-col items-center justify-center p-12 text-center">
+                        <div className="w-14 h-14 rounded-full bg-neutral-900/50 flex items-center justify-center mb-3">
+                            <FiBell className="text-neutral-600" size={24} />
+                        </div>
+                        <p className="text-neutral-500 text-sm">No notifications</p>
+                    </div>
+                )}
             </div>
         </DropdownPanel>
     );
 };
 
 const ProfilePanel = ({ onClose, user }: { onClose: () => void, user: User }) => {
+    const navigate = useNavigate();
+    
     const menuItems = [
-      { icon: FiUser, label: 'My Profile' },
-      { icon: FiHeart, label: 'Watchlist' },
-      { icon: FiDownload, label: 'Downloads' },
-      { icon: FiSettings, label: 'Settings' },
+      { icon: FiUser, label: 'My Profile', path: '/profile' },
+      { icon: FiHeart, label: 'Watchlist', path: '/watchlist' },
+      { icon: FiDownload, label: 'Downloads', path: '/downloads' },
+      { icon: FiSettings, label: 'Settings', path: '/settings' },
     ];
+    
+    const handleNavigation = (path: string) => {
+        navigate(path);
+        onClose();
+    };
+    
+    const handleSignOut = () => {
+        console.log('Signing out...');
+        onClose();
+    };
     
     return (
         <DropdownPanel onClose={onClose}>
-            <div className="p-4 sm:p-5">
-                <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-xl sm:text-2xl">
-                        {user.avatarInitial}
+            {/* Profile Header */}
+            <div className="p-5 border-b border-neutral-800/30">
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-red-500/30 shadow-lg">
+                        <img 
+                            src="/orko.jpeg" 
+                            alt={user.name}
+                            className="w-full h-full object-cover"
+                        />
                     </div>
-                    <div>
-                        <h3 className="font-bold text-white text-base sm:text-lg line-clamp-1">{user.name}</h3>
-                        <p className="text-neutral-400 text-xs sm:text-sm line-clamp-1">{user.email}</p>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-white text-base line-clamp-1">{user.name}</h3>
+                        <p className="text-neutral-500 text-xs line-clamp-1">{user.email}</p>
                     </div>
                 </div>
-                 <div className="mt-4 px-2 py-1 bg-gradient-to-r from-red-500 to-red-600 rounded-full text-xs font-bold text-white inline-block">
-                    {user.plan.toUpperCase()}
-                 </div>
+                {/* Owner Rank Badge */}
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(202, 138, 4, 0.1))',
+                        border: '1px solid rgba(234, 179, 8, 0.3)',
+                        boxShadow: '0 0 20px rgba(234, 179, 8, 0.2)'
+                    }}
+                >
+                    <FiAward className="text-yellow-500" size={14} />
+                    <span className="text-yellow-500 text-xs font-bold uppercase tracking-wide">Owner Rank</span>
+                </motion.div>
             </div>
-             <div className="p-2 border-t border-neutral-800">
+            
+            {/* Menu Items */}
+            <div className="p-3 space-y-1">
                 {menuItems.map((item, i) => (
-                    <MotionButton key={item.label} whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)', x: 4 }}
-                        className="w-full flex items-center gap-4 p-3 rounded-lg text-left">
-                        <item.icon className="text-neutral-400" size={20} />
-                        <span className="text-neutral-200 font-medium">{item.label}</span>
+                    <MotionButton 
+                        key={item.label}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05, type: 'spring', stiffness: 300, damping: 20 }}
+                        whileHover={{ x: 4 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleNavigation(item.path)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left group transition-all"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.06)'
+                        }}
+                    >
+                        <div className="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center group-hover:bg-red-600/20 transition-colors">
+                            <item.icon className="text-red-400 group-hover:text-red-300 transition-colors" size={16} />
+                        </div>
+                        <span className="text-neutral-300 text-sm font-medium group-hover:text-white transition-colors flex-1">
+                            {item.label}
+                        </span>
+                        <motion.div
+                            initial={{ opacity: 0, x: -5 }}
+                            whileHover={{ opacity: 1, x: 0 }}
+                            className="text-neutral-600"
+                        >
+                            <FiPlay size={12} className="rotate-180" />
+                        </motion.div>
                     </MotionButton>
                 ))}
             </div>
-            <div className="p-2 border-t border-neutral-700">
-                 <MotionButton whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)', x: 4 }} className="w-full flex items-center gap-4 p-3 rounded-lg text-left">
-                    <FiLogOut className="text-red-500" size={20} />
-                    <span className="text-red-500 font-medium">Sign Out</span>
+            
+            {/* Sign Out */}
+            <div className="p-3 border-t border-white/5">
+                <MotionButton 
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left group transition-all"
+                    style={{
+                        background: 'rgba(239, 68, 68, 0.08)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                    }}
+                >
+                    <div className="w-8 h-8 rounded-lg bg-red-600/20 flex items-center justify-center group-hover:bg-red-600/30 transition-colors">
+                        <FiLogOut className="text-red-400 group-hover:text-red-300 transition-colors" size={16} />
+                    </div>
+                    <span className="text-red-400 text-sm font-medium group-hover:text-red-300 transition-colors flex-1">
+                        Sign Out
+                    </span>
                 </MotionButton>
             </div>
         </DropdownPanel>
@@ -429,8 +591,12 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                         {/* Header */}
                         <div className="p-4 border-b border-neutral-800 flex items-center justify-between sticky top-0 bg-neutral-900 z-10">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-lg">
-                                    {MOCK_USER.avatarInitial}
+                                <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-red-500/30">
+                                    <img 
+                                        src="/orko.jpeg" 
+                                        alt={MOCK_USER.name}
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-white text-sm line-clamp-1">{MOCK_USER.name}</h3>
@@ -690,22 +856,27 @@ export default function Header() {
             <MobileSearch isOpen={isMobileSearchOpen} onClose={() => setMobileSearchOpen(false)} />
             
             <MotionDiv 
-                className={`fixed top-0 left-0 right-0 z-40 transition-colors duration-300`}
+                className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 rounded-b-[32px] overflow-visible`}
                 animate={{
-                    background: isScrolled ? 'rgba(10, 10, 10, 0.95)' : 'linear-gradient(180deg, rgba(10,10,10,0.8) 0%, transparent 100%)',
-                    backdropFilter: isScrolled ? 'blur(20px)' : 'blur(10px)',
-                    borderBottom: isScrolled ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent'
+                    background: isScrolled ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.3)',
+                    backdropFilter: 'blur(40px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                }}
+                style={{
+                    boxShadow: isScrolled ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none',
+                    border: isScrolled ? '2px solid rgba(255, 255, 255, 0.12)' : '2px solid rgba(255, 255, 255, 0.08)',
+                    borderTop: 'none'
                 }}
             >
-                <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 h-14 sm:h-18 md:h-20 max-w-7xl mx-auto">
+                <div className="flex items-center justify-between px-4 sm:px-4 md:px-6 h-16 sm:h-18 md:h-20 max-w-7xl mx-auto">
                     {/* Left: Mobile Menu + Logo */}
-                    <div className="flex items-center gap-2 sm:gap-8">
+                    <div className="flex items-center gap-3 sm:gap-8">
                         {/* Mobile Menu Button */}
                         <button 
                             onClick={() => setMobileMenuOpen(true)}
-                            className="md:hidden p-2 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target"
+                            className="md:hidden p-3 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target active:scale-95"
                         >
-                            <FiMenu size={22} />
+                            <FiMenu size={24} />
                         </button>
                         
                         <Logo />
@@ -719,26 +890,45 @@ export default function Header() {
                         {/* Mobile Search Button */}
                         <button 
                             onClick={() => setMobileSearchOpen(true)}
-                            className="md:hidden p-2 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target"
+                            className="md:hidden p-3 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target active:scale-95"
                         >
-                            <FiSearch size={20} />
+                            <FiSearch size={22} />
                         </button>
                         
                         {/* Notifications */}
                         <div className="relative">
-                           <button 
+                           <motion.button 
                                 onClick={() => setOpenDropdown(p => p === 'notifications' ? null : 'notifications')} 
-                                className="p-2 sm:p-2.5 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target"
+                                className="relative p-2.5 sm:p-2.5 rounded-full text-neutral-300 transition-all touch-target active:scale-90"
+                                animate={{
+                                    backgroundColor: openDropdown === 'notifications' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0)',
+                                    color: openDropdown === 'notifications' ? '#ef4444' : '#d4d4d8',
+                                    scale: openDropdown === 'notifications' ? 0.95 : 1
+                                }}
+                                whileHover={{ 
+                                    scale: 1.05,
+                                    backgroundColor: openDropdown === 'notifications' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(115, 115, 115, 0.3)'
+                                }}
+                                whileTap={{ scale: 0.9 }}
+                                transition={{ duration: 0.2 }}
                             >
                                 {unreadCount > 0 && (
                                     <MotionDiv
-                                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-neutral-900"
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                                        className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-neutral-900 shadow-lg"
                                     >
                                         {unreadCount}
                                     </MotionDiv>
                                 )}
-                                <FiBell size={20} />
-                            </button>
+                                <motion.div
+                                    animate={{ rotate: openDropdown === 'notifications' ? [0, -10, 10, -10, 0] : 0 }}
+                                    transition={{ duration: 0.5 }}
+                                >
+                                    <FiBell size={22} />
+                                </motion.div>
+                            </motion.button>
                             <AnimatePresence>
                                 {openDropdown === 'notifications' && <NotificationPanel onClose={closeAllPopups} />}
                             </AnimatePresence>
@@ -746,12 +936,27 @@ export default function Header() {
                         
                         {/* Profile */}
                         <div className="relative">
-                            <button 
+                            <motion.button 
                                 onClick={() => setOpenDropdown(p => p === 'profile' ? null : 'profile')} 
-                                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-base sm:text-lg touch-target"
+                                className="relative w-10 h-10 sm:w-10 sm:h-10 rounded-full overflow-hidden touch-target shadow-lg transition-all ring-2 active:scale-90"
+                                animate={{
+                                    scale: openDropdown === 'profile' ? 0.95 : 1
+                                }}
+                                style={{
+                                    boxShadow: openDropdown === 'profile' 
+                                        ? '0 0 0 4px rgba(239, 68, 68, 0.3), 0 8px 24px rgba(239, 68, 68, 0.4)'
+                                        : '0 0 0 2px rgba(239, 68, 68, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3)'
+                                }}
+                                whileHover={{ scale: openDropdown === 'profile' ? 0.95 : 1.05 }}
+                                whileTap={{ scale: 0.9 }}
+                                transition={{ duration: 0.2 }}
                             >
-                                {MOCK_USER.avatarInitial}
-                            </button>
+                                <img 
+                                    src="/orko.jpeg" 
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                />
+                            </motion.button>
                              <AnimatePresence>
                                 {openDropdown === 'profile' && <ProfilePanel onClose={closeAllPopups} user={MOCK_USER} />}
                             </AnimatePresence>

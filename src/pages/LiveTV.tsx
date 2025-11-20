@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { FiRadio, FiPlay, FiMaximize } from 'react-icons/fi'
+import { FiRadio, FiPlay, FiMaximize, FiAlertCircle } from 'react-icons/fi'
 import Hls from 'hls.js'
 
 interface Channel {
@@ -9,21 +9,22 @@ interface Channel {
   streamUrl: string
   country: string
   category: string
-  useIframe?: boolean
 }
 
 const LiveTV: React.FC = () => {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const hlsRef = useRef<Hls | null>(null)
 
   const channels: Channel[] = [
     {
-      id: 'tsports',
-      name: 'T Sports',
-      logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d7/T_Sports_logo.svg/1200px-T_Sports_logo.svg.png',
+      id: 'starsports',
+      name: 'Star Sports',
+      logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/5b/Star_Sports_logo.svg/1200px-Star_Sports_logo.svg.png',
       streamUrl: 'http://192.168.91.8/streams/118/index.m3u8',
-      country: '🇧🇩 Bangladesh',
+      country: '🇮🇳 India',
       category: 'Sports'
     }
   ]
@@ -32,63 +33,116 @@ const LiveTV: React.FC = () => {
     if (!selectedChannel || !videoRef.current) return
 
     const video = videoRef.current
+    setIsLoading(true)
+    setError(null)
 
     // Clean up previous HLS instance
     if (hlsRef.current) {
       hlsRef.current.destroy()
+      hlsRef.current = null
     }
+
+    console.log('Loading stream:', selectedChannel.streamUrl)
 
     if (Hls.isSupported()) {
       const hls = new Hls({
+        debug: true,
         enableWorker: true,
-        lowLatencyMode: true,
-        backBufferLength: 90
+        lowLatencyMode: false,
+        backBufferLength: 90,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 600,
+        xhrSetup: function (xhr, url) {
+          xhr.withCredentials = false // Disable credentials for local streams
+        }
       })
       
       hlsRef.current = hls
-      hls.loadSource(selectedChannel.streamUrl)
-      hls.attachMedia(video)
-      
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(err => console.log('Autoplay prevented:', err))
+
+      hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+        console.log('Manifest parsed, levels:', data.levels)
+        setIsLoading(false)
+        video.play()
+          .then(() => console.log('Playing successfully'))
+          .catch(err => {
+            console.error('Autoplay failed:', err)
+            setError('Click play button to start')
+          })
       })
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        console.error('HLS Error:', data)
+        console.error('HLS Error event:', event, data)
+        
         if (data.fatal) {
+          setIsLoading(false)
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.log('Network error, trying to recover...')
-              hls.startLoad()
+              console.error('Network error - Cannot load stream')
+              setError('Network error: Cannot connect to stream. Check if URL is accessible.')
+              setTimeout(() => {
+                console.log('Trying to recover from network error...')
+                hls.startLoad()
+              }, 3000)
               break
             case Hls.ErrorTypes.MEDIA_ERROR:
-              console.log('Media error, trying to recover...')
+              console.error('Media error - trying to recover')
+              setError('Media error: Attempting to recover...')
               hls.recoverMediaError()
               break
             default:
-              console.log('Fatal error, cannot recover')
+              console.error('Fatal error - cannot recover')
+              setError('Fatal error: Unable to play stream')
               hls.destroy()
               break
           }
         }
       })
+
+      hls.on(Hls.Events.FRAG_LOADED, () => {
+        console.log('Fragment loaded successfully')
+      })
+
+      hls.loadSource(selectedChannel.streamUrl)
+      hls.attachMedia(video)
+      
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       // Safari native HLS support
+      console.log('Using Safari native HLS')
       video.src = selectedChannel.streamUrl
       video.addEventListener('loadedmetadata', () => {
-        video.play().catch(err => console.log('Autoplay prevented:', err))
+        setIsLoading(false)
+        video.play().catch(err => {
+          console.error('Safari autoplay failed:', err)
+          setError('Click play button to start')
+        })
       })
+      video.addEventListener('error', (e) => {
+        console.error('Safari video error:', e)
+        setError('Error loading video stream')
+        setIsLoading(false)
+      })
+    } else {
+      setError('HLS not supported in this browser')
+      setIsLoading(false)
     }
 
     return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy()
+        hlsRef.current = null
       }
     }
   }, [selectedChannel])
 
   const handleChannelClick = (channel: Channel) => {
     setSelectedChannel(channel)
+    setError(null)
+  }
+
+  const handlePlayClick = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(err => console.error('Manual play failed:', err))
+    }
   }
 
   const toggleFullscreen = () => {
@@ -132,6 +186,35 @@ const LiveTV: React.FC = () => {
                   autoPlay
                   muted={false}
                 />
+                
+                {/* Loading Spinner */}
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                    <div className="text-center">
+                      <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-red-600 border-r-transparent mb-4"></div>
+                      <p className="text-white text-lg font-semibold">Loading stream...</p>
+                      <p className="text-gray-400 text-sm mt-2">Please wait</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {error && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+                    <div className="text-center max-w-md mx-4">
+                      <FiAlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                      <h3 className="text-white text-xl font-bold mb-2">Stream Error</h3>
+                      <p className="text-gray-300 text-sm mb-4">{error}</p>
+                      <button
+                        onClick={handlePlayClick}
+                        className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 mx-auto"
+                      >
+                        <FiPlay className="w-5 h-5" />
+                        Retry Stream
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Channel Info Bar */}

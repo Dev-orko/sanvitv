@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Header from './components/layout/Header'
+import MobileNav from './components/layout/MobileNav'
 import OptimizedHome from './pages/OptimizedHome'
 import MovieDetails from './pages/MovieDetails'
 import Movies from './pages/Movies'
@@ -27,7 +28,7 @@ function App() {
               <Route path="/*" element={
                 <div className="flex flex-col min-h-screen">
                   <Header />
-                  <main className="flex-1 pb-safe">
+                  <main className="flex-1 pb-20 md:pb-8">
                     <Routes>
                       <Route path="/" element={<OptimizedHome />} />
                       <Route path="/movies" element={<Movies />} />
@@ -38,6 +39,7 @@ function App() {
                       <Route path="/tv/:id" element={<MovieDetails />} />
                     </Routes>
                   </main>
+                  <MobileNav />
                 </div>
               } />
             </Routes>

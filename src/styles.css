@@ -205,6 +205,22 @@ input:focus, button:focus {
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
+  
+  /* Smoother transitions on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Optimize for touch */
+  button, a, [role="button"] {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+  
+  /* Smooth momentum scrolling */
+  .overflow-x-auto, .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Smooth touch scrolling on mobile */
@@ -272,6 +288,14 @@ input:focus, button:focus {
   .safe-area-inset {
     padding-left: max(12px, env(safe-area-inset-left));
     padding-right: max(12px, env(safe-area-inset-right));
+  }
+  
+  .pb-safe {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  
+  .pt-safe {
+    padding-top: max(16px, env(safe-area-inset-top));
   }
 }
 

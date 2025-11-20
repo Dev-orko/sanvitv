@@ -114,7 +114,7 @@ html, body {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.2s ease-in;
+  animation: fadeIn 0.8s ease-in;
 }
 
 /* Mobile-optimized video player */
