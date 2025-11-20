@@ -37,9 +37,14 @@ const MovieSlide = memo(({ movie, onReady }: { movie: Movie; onReady?: () => voi
   const title = movie.title || movie.name || 'Untitled'
   const year = (movie.release_date || movie.first_air_date || '').split('-')[0]
 
+  // Use poster on mobile, backdrop on desktop
   const backdropUrl = movie.backdrop_path
     ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
     : 'https://via.placeholder.com/1920x1080/000000/666666?text=No+Image'
+  
+  const posterUrl = movie.poster_path
+    ? `https://image.tmdb.org/t/p/original${movie.poster_path}`
+    : backdropUrl
 
   // Fetch trailer for this movie
   useEffect(() => {
@@ -85,36 +90,47 @@ const MovieSlide = memo(({ movie, onReady }: { movie: Movie; onReady?: () => voi
 
   return (
     <div className="relative h-[75vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] w-full overflow-hidden">
-      {/* Background with scale effect for professional look */}
+      {/* Background - Poster on mobile, backdrop/video on desktop */}
       <div className="absolute inset-0 scale-105">
-        {trailerKey ? (
-          // YouTube trailer video
-          <iframe
-            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&loop=1&playlist=${trailerKey}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
-            title={`${title} Trailer`}
-            className="w-full h-full object-cover pointer-events-none"
-            style={{
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%) scale(1.5)',
-              border: 'none'
-            }}
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-            onLoad={handleContentLoad}
-          />
-        ) : (
-          // Fallback to backdrop image
-          <img
-            src={backdropUrl}
-            alt={title}
-            className="w-full h-full object-cover"
-            onLoad={handleContentLoad}
-          />
-        )}
+        {/* Mobile: Show poster image */}
+        <img
+          src={posterUrl}
+          alt={title}
+          className="sm:hidden w-full h-full object-cover object-top"
+          onLoad={handleContentLoad}
+        />
+        
+        {/* Desktop: Show trailer or backdrop */}
+        <div className="hidden sm:block w-full h-full">
+          {trailerKey ? (
+            // YouTube trailer video
+            <iframe
+              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&loop=1&playlist=${trailerKey}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
+              title={`${title} Trailer`}
+              className="w-full h-full object-cover pointer-events-none"
+              style={{
+                width: '100%',
+                height: '100%',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%) scale(1.5)',
+                border: 'none'
+              }}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              onLoad={handleContentLoad}
+            />
+          ) : (
+            // Fallback to backdrop image
+            <img
+              src={backdropUrl}
+              alt={title}
+              className="w-full h-full object-cover"
+              onLoad={handleContentLoad}
+            />
+          )}
+        </div>
       </div>
       
       {/* Enhanced gradient overlays - Better for mobile */}
@@ -231,16 +247,16 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
-      {/* Modern Minimal Indicators - Mobile Optimized */}
-      <div className="absolute bottom-8 sm:bottom-8 left-0 right-0 flex justify-center items-center gap-2 pb-safe z-20">
+      {/* Modern Minimal Indicators - Smaller and cleaner on mobile */}
+      <div className="absolute bottom-8 sm:bottom-8 left-0 right-0 flex justify-center items-center gap-1.5 sm:gap-2 pb-safe z-20">
         {movies.map((_, index) => (
           <button
             key={index}
             onClick={() => emblaApi?.scrollTo(index)}
             className={`transition-all duration-300 rounded-full ${
               index === selectedIndex
-                ? 'w-6 sm:w-8 h-1.5 bg-red-600 shadow-lg shadow-red-600/50'
-                : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70 active:scale-90'
+                ? 'w-5 sm:w-6 md:w-8 h-1 sm:h-1.5 bg-red-600 shadow-lg shadow-red-600/50'
+                : 'w-1 sm:w-1.5 h-1 sm:h-1.5 bg-white/40 hover:bg-white/70 active:scale-90'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

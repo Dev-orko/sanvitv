@@ -871,10 +871,10 @@ export default function Header() {
                 <div className="flex items-center justify-between px-4 sm:px-4 md:px-6 h-16 sm:h-18 md:h-20 max-w-7xl mx-auto">
                     {/* Left: Mobile Menu + Logo */}
                     <div className="flex items-center gap-3 sm:gap-8">
-                        {/* Mobile Menu Button */}
+                        {/* Mobile Menu Button - Hidden on mobile since we have bottom nav */}
                         <button 
                             onClick={() => setMobileMenuOpen(true)}
-                            className="md:hidden p-3 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target active:scale-95"
+                            className="hidden md:hidden p-3 rounded-full text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors touch-target active:scale-95"
                         >
                             <FiMenu size={24} />
                         </button>

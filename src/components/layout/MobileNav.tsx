@@ -43,14 +43,6 @@ const MobileNav = () => {
                 background: isActive ? 'rgba(239, 68, 68, 0.15)' : 'transparent'
               }}
             >
-              {/* Active indicator */}
-              {isActive && (
-                <motion.div
-                  layoutId="mobile-nav-indicator"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-red-500 rounded-full"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
               
               {/* Icon */}
               <motion.div
