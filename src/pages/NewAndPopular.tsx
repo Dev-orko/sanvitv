@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import useSWR from 'swr'
 import { useNavigate } from 'react-router-dom'
-import { FiPlay, FiTrendingUp, FiStar } from 'react-icons/fi'
+import { FiPlay, FiTrendingUp, FiStar, FiFilm, FiZap } from 'react-icons/fi'
 import { API_CONFIG } from '../config/api'
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data)
@@ -23,12 +23,14 @@ interface MediaItem {
 const NewAndPopular: React.FC = () => {
   const navigate = useNavigate()
   
-  const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'topRated'>('trending')
+  const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'topRated' | 'bollywood' | 'anime'>('trending')
 
   // Fetch different content based on active tab
   const getTrendingUrl = () => `${API_CONFIG.TMDB_BASE_URL}/trending/all/week?api_key=${API_CONFIG.TMDB_API_KEY}`
   const getNewUrl = () => `${API_CONFIG.TMDB_BASE_URL}/movie/now_playing?api_key=${API_CONFIG.TMDB_API_KEY}&region=US`
   const getTopRatedUrl = () => `${API_CONFIG.TMDB_BASE_URL}/movie/top_rated?api_key=${API_CONFIG.TMDB_API_KEY}`
+  const getBollywoodUrl = () => `${API_CONFIG.TMDB_BASE_URL}/discover/movie?api_key=${API_CONFIG.TMDB_API_KEY}&with_original_language=hi&sort_by=popularity.desc&page=1`
+  const getAnimeUrl = () => `${API_CONFIG.TMDB_BASE_URL}/discover/tv?api_key=${API_CONFIG.TMDB_API_KEY}&with_genres=16&with_keywords=210024|287501&with_original_language=ja&sort_by=popularity.desc&page=1`
 
   const { data: trendingData, error: trendingError, isLoading: trendingLoading } = useSWR(
     activeTab === 'trending' ? getTrendingUrl() : null,
@@ -45,6 +47,16 @@ const NewAndPopular: React.FC = () => {
     fetcher
   )
 
+  const { data: bollywoodData, error: bollywoodError, isLoading: bollywoodLoading } = useSWR(
+    activeTab === 'bollywood' ? getBollywoodUrl() : null,
+    fetcher
+  )
+
+  const { data: animeData, error: animeError, isLoading: animeLoading } = useSWR(
+    activeTab === 'anime' ? getAnimeUrl() : null,
+    fetcher
+  )
+
   const getActiveData = () => {
     switch (activeTab) {
       case 'trending':
@@ -53,13 +65,17 @@ const NewAndPopular: React.FC = () => {
         return newData?.results?.map((item: any) => ({ ...item, media_type: 'movie' })) || []
       case 'topRated':
         return topRatedData?.results?.map((item: any) => ({ ...item, media_type: 'movie' })) || []
+      case 'bollywood':
+        return bollywoodData?.results?.map((item: any) => ({ ...item, media_type: 'movie' })) || []
+      case 'anime':
+        return animeData?.results?.map((item: any) => ({ ...item, media_type: 'tv' })) || []
       default:
         return []
     }
   }
 
-  const isLoading = trendingLoading || newLoading || topRatedLoading
-  const error = trendingError || newError || topRatedError
+  const isLoading = trendingLoading || newLoading || topRatedLoading || bollywoodLoading || animeLoading
+  const error = trendingError || newError || topRatedError || bollywoodError || animeError
 
   const items: MediaItem[] = getActiveData()
 
@@ -119,6 +135,32 @@ const NewAndPopular: React.FC = () => {
             <FiStar className="inline mr-2" />
             Top Rated
             {activeTab === 'topRated' && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('bollywood')}
+            className={`pb-4 px-2 font-semibold transition relative ${
+              activeTab === 'bollywood' ? 'text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <FiFilm className="inline mr-2" />
+            Bollywood
+            {activeTab === 'bollywood' && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('anime')}
+            className={`pb-4 px-2 font-semibold transition relative ${
+              activeTab === 'anime' ? 'text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <FiZap className="inline mr-2" />
+            Anime
+            {activeTab === 'anime' && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
             )}
           </button>
