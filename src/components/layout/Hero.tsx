@@ -247,20 +247,39 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
-      {/* Ultra Minimal Slide Indicators */}
-      <div className="absolute bottom-6 sm:bottom-8 left-0 right-0 flex justify-center items-center gap-1 pb-safe z-20">
-        {movies.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => emblaApi?.scrollTo(index)}
-            className={`transition-all duration-300 ${
-              index === selectedIndex
-                ? 'w-4 h-0.5 bg-red-600 rounded-full'
-                : 'w-0.5 h-0.5 bg-white/30 hover:bg-white/50 rounded-full'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+      {/* Slide Indicators - Different for mobile and desktop */}
+      <div className="absolute bottom-6 sm:bottom-8 left-0 right-0 pb-safe z-20">
+        {/* Mobile: Ultra minimal dots */}
+        <div className="sm:hidden flex justify-center items-center gap-1">
+          {movies.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => emblaApi?.scrollTo(index)}
+              className={`transition-all duration-300 ${
+                index === selectedIndex
+                  ? 'w-4 h-0.5 bg-red-600 rounded-full'
+                  : 'w-0.5 h-0.5 bg-white/30 hover:bg-white/50 rounded-full'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Desktop: Normal sized indicators */}
+        <div className="hidden sm:flex justify-center items-center gap-2">
+          {movies.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => emblaApi?.scrollTo(index)}
+              className={`transition-all duration-300 rounded-full ${
+                index === selectedIndex
+                  ? 'w-8 h-1.5 bg-red-600 shadow-lg shadow-red-600/50'
+                  : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70 active:scale-90'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
