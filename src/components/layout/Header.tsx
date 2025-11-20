@@ -5,7 +5,7 @@ const MotionDiv = motion.div as any;
 const MotionButton = motion.button as any;
 import {
   FiSearch, FiUser, FiBell, FiMenu, FiSettings, FiLogOut, FiHeart, 
-  FiFilm, FiTv, FiTrendingUp, FiX, FiHome, FiClock, FiStar, FiDownload, FiPlay
+  FiFilm, FiTv, FiTrendingUp, FiX, FiHome, FiClock, FiStar, FiDownload, FiPlay, FiRadio
 } from 'react-icons/fi';
 import axios from 'axios';
 import { API_CONFIG } from '../../config/api';
@@ -110,6 +110,7 @@ const DesktopNav = () => {
       { label: 'Movies', path: '/movies' },
       { label: 'Series', path: '/series' },
       { label: 'New & Popular', path: '/new-popular' },
+      { label: 'Live TV', path: '/live-tv', live: true },
     ];
 
     return (
@@ -122,7 +123,15 @@ const DesktopNav = () => {
                 onClick={() => navigate(item.path)}
                 className={`relative px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-lg transition-colors duration-300 ${isActive ? 'text-white' : 'text-neutral-400 hover:text-white'}`}
               >
-                {item.label}
+                <span className="flex items-center gap-1.5">
+                  {item.label}
+                  {item.live && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+                    </span>
+                  )}
+                </span>
                 {isActive && (
                   <MotionDiv
                     className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
@@ -385,6 +394,7 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
       { icon: FiFilm, label: 'Movies', path: '/movies' },
       { icon: FiTv, label: 'Series', path: '/series' },
       { icon: FiTrendingUp, label: 'New & Popular', path: '/new-popular' },
+      { icon: FiRadio, label: 'Live TV', path: '/live-tv', live: true },
       { icon: FiHeart, label: 'My Watchlist', path: '/watchlist' },
       { icon: FiDownload, label: 'Downloads', path: '/downloads' },
       { icon: FiSettings, label: 'Settings', path: '/settings' },
@@ -452,7 +462,13 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                                             }`}
                                         >
                                             <item.icon size={22} />
-                                            <span className="font-medium text-base">{item.label}</span>
+                                            <span className="font-medium text-base flex-1 text-left">{item.label}</span>
+                                            {item.live && (
+                                                <span className="relative flex h-2.5 w-2.5">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                                                </span>
+                                            )}
                                         </button>
                                     </MotionDiv>
                                 );

@@ -6,6 +6,7 @@ import MovieDetails from './pages/MovieDetails'
 import Movies from './pages/Movies'
 import Series from './pages/Series'
 import NewAndPopular from './pages/NewAndPopular'
+import LiveTV from './pages/LiveTV'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ErrorBoundary from './components/common/ErrorBoundary'
@@ -32,6 +33,7 @@ function App() {
                       <Route path="/movies" element={<Movies />} />
                       <Route path="/series" element={<Series />} />
                       <Route path="/new-popular" element={<NewAndPopular />} />
+                      <Route path="/live-tv" element={<LiveTV />} />
                       <Route path="/movie/:id" element={<MovieDetails />} />
                       <Route path="/tv/:id" element={<MovieDetails />} />
                     </Routes>
