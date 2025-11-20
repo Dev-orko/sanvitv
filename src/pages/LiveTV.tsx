@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react'
-import { FiRadio, FiPlay, FiMaximize, FiVolume2, FiVolumeX } from 'react-icons/fi'
+import React, { useState, useEffect, useRef } from 'react'
+import { FiRadio, FiPlay, FiMaximize } from 'react-icons/fi'
+import Hls from 'hls.js'
 
 interface Channel {
   id: string
@@ -8,42 +9,86 @@ interface Channel {
   streamUrl: string
   country: string
   category: string
+  useIframe?: boolean
 }
 
 const LiveTV: React.FC = () => {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const hlsRef = useRef<Hls | null>(null)
 
   const channels: Channel[] = [
     {
       id: 'tsports',
       name: 'T Sports',
       logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d7/T_Sports_logo.svg/1200px-T_Sports_logo.svg.png',
-      streamUrl: 'blob:http://192.168.91.8/e06e0dad-5d76-42e0-86a0-1425c4b1eff7',
+      streamUrl: 'http://192.168.91.8/streams/118/index.m3u8',
       country: '🇧🇩 Bangladesh',
       category: 'Sports'
     }
   ]
 
+  useEffect(() => {
+    if (!selectedChannel || !videoRef.current) return
+
+    const video = videoRef.current
+
+    // Clean up previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy()
+    }
+
+    if (Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 90
+      })
+      
+      hlsRef.current = hls
+      hls.loadSource(selectedChannel.streamUrl)
+      hls.attachMedia(video)
+      
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(err => console.log('Autoplay prevented:', err))
+      })
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        console.error('HLS Error:', data)
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.log('Network error, trying to recover...')
+              hls.startLoad()
+              break
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.log('Media error, trying to recover...')
+              hls.recoverMediaError()
+              break
+            default:
+              console.log('Fatal error, cannot recover')
+              hls.destroy()
+              break
+          }
+        }
+      })
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari native HLS support
+      video.src = selectedChannel.streamUrl
+      video.addEventListener('loadedmetadata', () => {
+        video.play().catch(err => console.log('Autoplay prevented:', err))
+      })
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy()
+      }
+    }
+  }, [selectedChannel])
+
   const handleChannelClick = (channel: Channel) => {
     setSelectedChannel(channel)
-    setIsPlaying(false)
-  }
-
-  const handlePlay = () => {
-    if (videoRef.current) {
-      videoRef.current.play()
-      setIsPlaying(true)
-    }
-  }
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted
-      setIsMuted(!isMuted)
-    }
   }
 
   const toggleFullscreen = () => {
@@ -81,25 +126,12 @@ const LiveTV: React.FC = () => {
               <div className="relative aspect-video bg-black">
                 <video
                   ref={videoRef}
-                  src={selectedChannel.streamUrl}
                   className="w-full h-full"
                   controls
+                  playsInline
                   autoPlay
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
+                  muted={false}
                 />
-                
-                {/* Custom Controls Overlay */}
-                {!isPlaying && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <button
-                      onClick={handlePlay}
-                      className="p-6 bg-red-600 rounded-full hover:bg-red-700 transition-all transform hover:scale-110 shadow-2xl"
-                    >
-                      <FiPlay className="w-12 h-12 text-white" />
-                    </button>
-                  </div>
-                )}
               </div>
 
               {/* Channel Info Bar */}
@@ -131,14 +163,8 @@ const LiveTV: React.FC = () => {
                   
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={toggleMute}
-                      className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors"
-                    >
-                      {isMuted ? <FiVolumeX className="w-5 h-5 text-white" /> : <FiVolume2 className="w-5 h-5 text-white" />}
-                    </button>
-                    <button
                       onClick={toggleFullscreen}
-                      className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors"
+                      className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors touch-target"
                     >
                       <FiMaximize className="w-5 h-5 text-white" />
                     </button>
