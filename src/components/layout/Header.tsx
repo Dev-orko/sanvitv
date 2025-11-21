@@ -438,6 +438,7 @@ const NotificationPanel = ({ onClose }: { onClose: () => void }) => {
 const ProfilePanel = ({ onClose }: { onClose: () => void }) => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const isOwner = localStorage.getItem('ownerRank') === 'true';
     
     const menuItems = [
       { icon: FiUser, label: 'My Profile', path: '/profile' },
@@ -485,6 +486,23 @@ const ProfilePanel = ({ onClose }: { onClose: () => void }) => {
                         <p className="text-neutral-500 text-xs line-clamp-1">{user?.email}</p>
                     </div>
                 </div>
+                {/* Owner Rank Badge */}
+                {isOwner && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(202, 138, 4, 0.1))',
+                            border: '1px solid rgba(234, 179, 8, 0.3)',
+                            boxShadow: '0 0 20px rgba(234, 179, 8, 0.2)'
+                        }}
+                    >
+                        <FiAward className="text-yellow-500" size={14} />
+                        <span className="text-yellow-500 text-xs font-bold uppercase tracking-wide">Owner Rank</span>
+                    </motion.div>
+                )}
             </div>
             
             {/* Menu Items */}

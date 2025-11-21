@@ -53,10 +53,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
+    // Check for hardcoded owner account
+    if (email === 'orko' && password === 'owner') {
+      // Create a mock user object for the owner
+      const mockOwnerUser = {
+        uid: 'owner-orko',
+        email: 'orko@sanvitv.com',
+        displayName: 'Orko',
+        photoURL: '/orko.jpeg',
+        emailVerified: true,
+        isAnonymous: false,
+        metadata: {},
+        providerData: [],
+        refreshToken: '',
+        tenantId: null,
+        delete: async () => {},
+        getIdToken: async () => '',
+        getIdTokenResult: async () => ({} as any),
+        reload: async () => {},
+        toJSON: () => ({}),
+        providerId: 'owner-rank'
+      } as User;
+      
+      setUser(mockOwnerUser);
+      // Store owner status in localStorage
+      localStorage.setItem('ownerRank', 'true');
+      return;
+    }
+    
+    // Clear owner status for regular login
+    localStorage.removeItem('ownerRank');
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
+    localStorage.removeItem('ownerRank');
+    setUser(null);
     await signOut(auth);
   };
 
