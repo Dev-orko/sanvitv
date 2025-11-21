@@ -37,6 +37,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check for persisted owner session
+    const ownerRank = localStorage.getItem('ownerRank');
+    const ownerData = localStorage.getItem('ownerData');
+    
+    if (ownerRank === 'true' && ownerData) {
+      try {
+        const parsedOwnerData = JSON.parse(ownerData);
+        const mockOwnerUser = {
+          uid: 'owner-orko',
+          email: parsedOwnerData.email,
+          displayName: 'Orko',
+          photoURL: '/orko.jpeg',
+          emailVerified: true,
+          isAnonymous: false,
+          metadata: {},
+          providerData: [],
+          refreshToken: '',
+          tenantId: null,
+          delete: async () => {},
+          getIdToken: async () => '',
+          getIdTokenResult: async () => ({} as any),
+          reload: async () => {},
+          toJSON: () => ({}),
+          providerId: 'owner-rank'
+        } as User;
+        setUser(mockOwnerUser);
+        setLoading(false);
+        return;
+      } catch (e) {
+        localStorage.removeItem('ownerRank');
+        localStorage.removeItem('ownerData');
+      }
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -77,18 +111,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } as User;
       
       setUser(mockOwnerUser);
-      // Store owner status in localStorage
+      // Store owner status and data in localStorage for persistence
       localStorage.setItem('ownerRank', 'true');
+      localStorage.setItem('ownerData', JSON.stringify({ email: mockOwnerUser.email }));
       return;
     }
     
     // Clear owner status for regular login
     localStorage.removeItem('ownerRank');
+    localStorage.removeItem('ownerData');
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
     localStorage.removeItem('ownerRank');
+    localStorage.removeItem('ownerData');
     setUser(null);
     await signOut(auth);
   };
