@@ -102,7 +102,7 @@ const Logo = () => {
       <div className="relative">
         {/* Netflix-style bold text - smaller on mobile */}
         <span className="text-[18px] sm:text-[24px] md:text-[28px] font-black tracking-[-0.05em] leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontStretch: 'condensed', letterSpacing: '-0.02em' }}>
-          <span className="text-[#E50914]">SanviTV</span>
+          <span className="text-[#E50914]">sanviplex</span>
         </span>
       </div>
     </div>
