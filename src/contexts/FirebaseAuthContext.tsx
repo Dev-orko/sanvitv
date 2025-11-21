@@ -53,12 +53,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    // Check for hardcoded owner account
-    if (email === 'orko' && password === 'owner') {
+    // Check for hardcoded owner accounts
+    if ((email === 'orko' && password === 'owner') || 
+        (email === 'orko@admin.com' && password === 'admin123')) {
       // Create a mock user object for the owner
       const mockOwnerUser = {
         uid: 'owner-orko',
-        email: 'orko@sanvitv.com',
+        email: email === 'orko' ? 'orko@sanvitv.com' : 'orko@admin.com',
         displayName: 'Orko',
         photoURL: '/orko.jpeg',
         emailVerified: true,
