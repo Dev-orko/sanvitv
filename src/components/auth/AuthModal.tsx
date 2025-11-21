@@ -38,7 +38,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         }
         await signup(email, password, displayName);
       } else if (mode === 'login') {
-        await login(email, password);
+        // Check if it's the owner account (no email format required)
+        if (email === 'orko' && password === 'owner') {
+          await login(email, password);
+        } else {
+          // Regular Firebase login (requires valid email)
+          await login(email, password);
+        }
       } else if (mode === 'reset') {
         await resetPassword(email);
         setResetSent(true);
@@ -151,16 +157,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 {/* Email Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Email
+                    {mode === 'login' ? 'Email or Username' : 'Email'}
                   </label>
                   <div className="relative">
                     <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                     <input
-                      type="email"
+                      type={mode === 'login' ? 'text' : 'email'}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors"
-                      placeholder="Enter your email"
+                      placeholder={mode === 'login' ? 'Enter email or username' : 'Enter your email'}
                       required
                     />
                   </div>
