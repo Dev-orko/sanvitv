@@ -223,6 +223,16 @@ input:focus, button:focus {
   }
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Smooth touch scrolling on mobile */
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch;

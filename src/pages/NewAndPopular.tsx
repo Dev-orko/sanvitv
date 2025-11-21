@@ -98,72 +98,140 @@ const NewAndPopular: React.FC = () => {
           <p className="text-gray-400 text-lg">What's trending and recently released</p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-neutral-800">
-          <button
-            onClick={() => setActiveTab('trending')}
-            className={`pb-4 px-2 font-semibold transition relative ${
-              activeTab === 'trending' ? 'text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <FiTrendingUp className="inline mr-2" />
-            Trending
-            {activeTab === 'trending' && (
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
-            )}
-          </button>
+        {/* Tabs - Mobile Optimized */}
+        <div className="mb-8">
+          {/* Mobile: Horizontal scroll with better spacing */}
+          <div className="sm:hidden overflow-x-auto scrollbar-hide -mx-4 px-4">
+            <div className="flex gap-2 pb-4 border-b border-neutral-800 min-w-max">
+              <button
+                onClick={() => setActiveTab('trending')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                  activeTab === 'trending' 
+                    ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' 
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white active:scale-95'
+                }`}
+              >
+                <FiTrendingUp size={16} />
+                Trending
+              </button>
 
-          <button
-            onClick={() => setActiveTab('new')}
-            className={`pb-4 px-2 font-semibold transition relative ${
-              activeTab === 'new' ? 'text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <FiPlay className="inline mr-2" />
-            New Releases
-            {activeTab === 'new' && (
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
-            )}
-          </button>
+              <button
+                onClick={() => setActiveTab('new')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                  activeTab === 'new' 
+                    ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' 
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white active:scale-95'
+                }`}
+              >
+                <FiPlay size={16} />
+                New Releases
+              </button>
 
-          <button
-            onClick={() => setActiveTab('topRated')}
-            className={`pb-4 px-2 font-semibold transition relative ${
-              activeTab === 'topRated' ? 'text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <FiStar className="inline mr-2" />
-            Top Rated
-            {activeTab === 'topRated' && (
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
-            )}
-          </button>
+              <button
+                onClick={() => setActiveTab('topRated')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                  activeTab === 'topRated' 
+                    ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' 
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white active:scale-95'
+                }`}
+              >
+                <FiStar size={16} />
+                Top Rated
+              </button>
 
-          <button
-            onClick={() => setActiveTab('bollywood')}
-            className={`pb-4 px-2 font-semibold transition relative ${
-              activeTab === 'bollywood' ? 'text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <FiFilm className="inline mr-2" />
-            Bollywood
-            {activeTab === 'bollywood' && (
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
-            )}
-          </button>
+              <button
+                onClick={() => setActiveTab('bollywood')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                  activeTab === 'bollywood' 
+                    ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' 
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white active:scale-95'
+                }`}
+              >
+                <FiFilm size={16} />
+                Bollywood
+              </button>
 
-          <button
-            onClick={() => setActiveTab('anime')}
-            className={`pb-4 px-2 font-semibold transition relative ${
-              activeTab === 'anime' ? 'text-white' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <FiZap className="inline mr-2" />
-            Anime
-            {activeTab === 'anime' && (
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
-            )}
-          </button>
+              <button
+                onClick={() => setActiveTab('anime')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition-all whitespace-nowrap ${
+                  activeTab === 'anime' 
+                    ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' 
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white active:scale-95'
+                }`}
+              >
+                <FiZap size={16} />
+                Anime
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop: Normal tabs with underline */}
+          <div className="hidden sm:flex gap-4 border-b border-neutral-800">
+            <button
+              onClick={() => setActiveTab('trending')}
+              className={`pb-4 px-2 font-semibold transition relative ${
+                activeTab === 'trending' ? 'text-white' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <FiTrendingUp className="inline mr-2" />
+              Trending
+              {activeTab === 'trending' && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('new')}
+              className={`pb-4 px-2 font-semibold transition relative ${
+                activeTab === 'new' ? 'text-white' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <FiPlay className="inline mr-2" />
+              New Releases
+              {activeTab === 'new' && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('topRated')}
+              className={`pb-4 px-2 font-semibold transition relative ${
+                activeTab === 'topRated' ? 'text-white' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <FiStar className="inline mr-2" />
+              Top Rated
+              {activeTab === 'topRated' && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('bollywood')}
+              className={`pb-4 px-2 font-semibold transition relative ${
+                activeTab === 'bollywood' ? 'text-white' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <FiFilm className="inline mr-2" />
+              Bollywood
+              {activeTab === 'bollywood' && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('anime')}
+              className={`pb-4 px-2 font-semibold transition relative ${
+                activeTab === 'anime' ? 'text-white' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <FiZap className="inline mr-2" />
+              Anime
+              {activeTab === 'anime' && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600 rounded-t" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Loading State */}
