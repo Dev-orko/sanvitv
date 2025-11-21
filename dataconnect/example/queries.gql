@@ -1,0 +1,36 @@
+mutation CreateDemoUser @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  user_insert(data: {
+    username: "demouser",
+    email: "demouser@example.com",
+    createdAt: "2024-04-26T12:00:00Z",
+    displayName: "Demo User",
+    profilePictureUrl: "https://example.com/demouser.jpg"
+  })
+}
+
+query GetMoviesByGenre($genre: String!) @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  movies(where: {genres: {includes: $genre}}) {
+    id
+    title
+    description
+    posterUrl
+  }
+}
+
+mutation UpdateWatchHistory($userId: UUID!, $movieId: UUID!, $progressSeconds: Int!) @auth(level: USER) {
+  watchHistory_update(
+    key: {userId: $userId, movieId: $movieId}
+    data: {progressSeconds: $progressSeconds}
+  )
+}
+
+query GetSubscriptionPlan @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  subscriptionPlans {
+    id
+    name
+    description
+    price
+    accessLevel
+    features
+  }
+}

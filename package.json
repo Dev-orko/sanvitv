@@ -9,6 +9,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "@reduxjs/toolkit": "^2.9.1",
     "@types/react-router-dom": "^5.3.3",
     "@vidstack/react": "^0.6.15",
@@ -16,6 +17,7 @@
     "axios": "^1.4.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "firebase": "^12.6.0",
     "framer-motion": "^10.12.16",
     "hls.js": "^1.6.15",
     "react": "^18.2.0",

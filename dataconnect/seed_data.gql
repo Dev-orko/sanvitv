@@ -1,0 +1,122 @@
+mutation PopulateDatabaseWithSeedData @transaction @auth(level: NO_ACCESS) {
+  user_insertMany(
+    data: [
+      {
+        id: "6b29c67f-bb91-476a-b911-4d15280854d9"
+        username: "testuser1"
+        email: "test1@example.com"
+        createdAt: "2024-04-01T00:00:00Z"
+        displayName: "Test User One"
+        profilePictureUrl: "http://example.com/avatar1.jpg"
+      }
+      {
+        id: "3c9b9ff6-87d8-4456-a831-0c0af08a3201"
+        username: "testuser2"
+        email: "test2@example.com"
+        createdAt: "2024-04-02T00:00:00Z"
+        displayName: "Test User Two"
+        profilePictureUrl: "http://example.com/avatar2.jpg"
+      }
+    ]
+  )
+  subscriptionPlan_insertMany(
+    data: [
+      {
+        id: "a1b2c3d4-e5f6-4789-90ab-cdef01234567"
+        name: "Basic Plan"
+        description: "Basic access to movies"
+        price: 9.99
+        accessLevel: "Basic"
+        features: ["Standard Definition", "Ad-supported"]
+        createdAt: "2024-04-01T00:00:00Z"
+      }
+      {
+        id: "f8e7d6c5-b4a3-4912-82cd-9ba012345678"
+        name: "Premium Plan"
+        description: "Full access to movies and features"
+        price: 19.99
+        accessLevel: "Premium"
+        features: ["4K Ultra HD", "Ad-free", "Offline Downloads"]
+        createdAt: "2024-04-01T00:00:00Z"
+      }
+    ]
+  )
+  userSubscription_insertMany(
+    data: [
+      {
+        id: "998c6803-7890-4151-8778-361f091838dd"
+        userId: "6b29c67f-bb91-476a-b911-4d15280854d9"
+        subscriptionPlanId: "a1b2c3d4-e5f6-4789-90ab-cdef01234567"
+        startDate: "2024-04-01T00:00:00Z"
+        endDate: "2025-04-01T00:00:00Z"
+        status: "Active"
+        autoRenew: true
+        createdAt: "2024-04-01T00:00:00Z"
+        user: { id: "6b29c67f-bb91-476a-b911-4d15280854d9" }
+        subscriptionPlan: { id: "a1b2c3d4-e5f6-4789-90ab-cdef01234567" }
+      }
+      {
+        id: "4e4e7172-84f4-483c-a37f-a80f33c34020"
+        userId: "3c9b9ff6-87d8-4456-a831-0c0af08a3201"
+        subscriptionPlanId: "f8e7d6c5-b4a3-4912-82cd-9ba012345678"
+        startDate: "2024-04-02T00:00:00Z"
+        endDate: "2025-04-02T00:00:00Z"
+        status: "Active"
+        autoRenew: true
+        createdAt: "2024-04-02T00:00:00Z"
+        user: { id: "3c9b9ff6-87d8-4456-a831-0c0af08a3201" }
+        subscriptionPlan: { id: "f8e7d6c5-b4a3-4912-82cd-9ba012345678" }
+      }
+    ]
+  )
+  movie_insertMany(
+    data: [
+      {
+        id: "7a9b8c7d-e90f-4298-a055-8f3f2d4e5b9d"
+        title: "Action Movie 1"
+        description: "Exciting action movie"
+        director: "Action Director"
+        durationMinutes: 120
+        genres: ["Action", "Adventure"]
+        posterUrl: "http://example.com/action1.jpg"
+        rating: 7.5
+        releaseYear: 2023
+        createdAt: "2024-04-01T00:00:00Z"
+      }
+      {
+        id: "1b2c3d4e-f5a6-49b7-a1cd-4e6f7a8b9c0d"
+        title: "Comedy Movie 1"
+        description: "Hilarious comedy movie"
+        director: "Comedy Director"
+        durationMinutes: 90
+        genres: ["Comedy"]
+        posterUrl: "http://example.com/comedy1.jpg"
+        rating: 8.0
+        releaseYear: 2024
+        createdAt: "2024-04-02T00:00:00Z"
+      }
+    ]
+  )
+  watchHistory_insertMany(
+    data: [
+      {
+        userId: "6b29c67f-bb91-476a-b911-4d15280854d9"
+        movieId: "7a9b8c7d-e90f-4298-a055-8f3f2d4e5b9d"
+        watchedAt: "2024-04-03T00:00:00Z"
+        progressSeconds: 3600
+        finished: true
+        user: { id: "6b29c67f-bb91-476a-b911-4d15280854d9" }
+        movie: { id: "7a9b8c7d-e90f-4298-a055-8f3f2d4e5b9d" }
+      }
+      {
+        userId: "3c9b9ff6-87d8-4456-a831-0c0af08a3201"
+        movieId: "1b2c3d4e-f5a6-49b7-a1cd-4e6f7a8b9c0d"
+        watchedAt: "2024-04-04T00:00:00Z"
+        progressSeconds: 2700
+        finished: true
+        user: { id: "3c9b9ff6-87d8-4456-a831-0c0af08a3201" }
+        movie: { id: "1b2c3d4e-f5a6-49b7-a1cd-4e6f7a8b9c0d" }
+      }
+    ]
+  )
+}

@@ -1,0 +1,46 @@
+type User @table {
+  username: String!
+  email: String!
+  createdAt: Timestamp!
+  displayName: String
+  profilePictureUrl: String
+}
+
+type Movie @table {
+  title: String!
+  releaseYear: Int!
+  durationMinutes: Int!
+  posterUrl: String!
+  createdAt: Timestamp!
+  description: String
+  director: String
+  genres: [String]
+  rating: Float
+}
+
+type SubscriptionPlan @table {
+  name: String!
+  price: Float!
+  accessLevel: String!
+  createdAt: Timestamp!
+  description: String
+  features: [String]
+}
+
+type UserSubscription @table {
+  user: User!
+  subscriptionPlan: SubscriptionPlan!
+  startDate: Timestamp!
+  endDate: Timestamp!
+  status: String!
+  createdAt: Timestamp!
+  autoRenew: Boolean
+}
+
+type WatchHistory @table(key: ["user", "movie"]) {
+  user: User!
+  movie: Movie!
+  watchedAt: Timestamp!
+  progressSeconds: Int!
+  finished: Boolean
+}

@@ -9,6 +9,8 @@ import {
 } from 'react-icons/fi';
 import axios from 'axios';
 import { API_CONFIG } from '../../config/api';
+import { useAuth } from '../../contexts/FirebaseAuthContext';
+import AuthModal from '../auth/AuthModal';
 
 // --- TYPE DEFINITIONS ---
 interface SearchResult {
@@ -433,8 +435,9 @@ const NotificationPanel = ({ onClose }: { onClose: () => void }) => {
     );
 };
 
-const ProfilePanel = ({ onClose, user }: { onClose: () => void, user: User }) => {
+const ProfilePanel = ({ onClose }: { onClose: () => void }) => {
     const navigate = useNavigate();
+    const { user, logout } = useAuth();
     
     const menuItems = [
       { icon: FiUser, label: 'My Profile', path: '/profile' },
@@ -448,9 +451,13 @@ const ProfilePanel = ({ onClose, user }: { onClose: () => void, user: User }) =>
         onClose();
     };
     
-    const handleSignOut = () => {
-        console.log('Signing out...');
-        onClose();
+    const handleSignOut = async () => {
+        try {
+            await logout();
+            onClose();
+        } catch (error) {
+            console.error('Error signing out:', error);
+        }
     };
     
     return (
@@ -458,33 +465,26 @@ const ProfilePanel = ({ onClose, user }: { onClose: () => void, user: User }) =>
             {/* Profile Header */}
             <div className="p-5 border-b border-neutral-800/30">
                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-red-500/30 shadow-lg">
-                        <img 
-                            src="/orko.jpeg" 
-                            alt={user.name}
-                            className="w-full h-full object-cover"
-                        />
+                    <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-red-500/30 shadow-lg bg-red-600/20 flex items-center justify-center">
+                        {user?.photoURL ? (
+                            <img 
+                                src={user.photoURL} 
+                                alt={user.displayName || 'User'}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <span className="text-white font-bold text-lg">
+                                {user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
+                            </span>
+                        )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white text-base line-clamp-1">{user.name}</h3>
-                        <p className="text-neutral-500 text-xs line-clamp-1">{user.email}</p>
+                        <h3 className="font-semibold text-white text-base line-clamp-1">
+                            {user?.displayName || 'User'}
+                        </h3>
+                        <p className="text-neutral-500 text-xs line-clamp-1">{user?.email}</p>
                     </div>
                 </div>
-                {/* Owner Rank Badge */}
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-                    style={{
-                        background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(202, 138, 4, 0.1))',
-                        border: '1px solid rgba(234, 179, 8, 0.3)',
-                        boxShadow: '0 0 20px rgba(234, 179, 8, 0.2)'
-                    }}
-                >
-                    <FiAward className="text-yellow-500" size={14} />
-                    <span className="text-yellow-500 text-xs font-bold uppercase tracking-wide">Owner Rank</span>
-                </motion.div>
             </div>
             
             {/* Menu Items */}
@@ -836,6 +836,8 @@ export default function Header() {
     const [openDropdown, setOpenDropdown] = useState<'notifications' | 'profile' | null>(null);
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMobileSearchOpen, setMobileSearchOpen] = useState(false);
+    const [authModalOpen, setAuthModalOpen] = useState(false);
+    const { user } = useAuth();
     
     const isScrolled = scrollPosition > 10;
     
@@ -934,36 +936,59 @@ export default function Header() {
                             </AnimatePresence>
                         </div>
                         
-                        {/* Profile */}
+                        {/* Profile or Login */}
                         <div className="relative">
-                            <motion.button 
-                                onClick={() => setOpenDropdown(p => p === 'profile' ? null : 'profile')} 
-                                className="relative w-10 h-10 sm:w-10 sm:h-10 rounded-full overflow-hidden touch-target shadow-lg transition-all ring-2 active:scale-90"
-                                animate={{
-                                    scale: openDropdown === 'profile' ? 0.95 : 1
-                                }}
-                                style={{
-                                    boxShadow: openDropdown === 'profile' 
-                                        ? '0 0 0 4px rgba(239, 68, 68, 0.3), 0 8px 24px rgba(239, 68, 68, 0.4)'
-                                        : '0 0 0 2px rgba(239, 68, 68, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3)'
-                                }}
-                                whileHover={{ scale: openDropdown === 'profile' ? 0.95 : 1.05 }}
-                                whileTap={{ scale: 0.9 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <img 
-                                    src="/orko.jpeg" 
-                                    alt="Profile"
-                                    className="w-full h-full object-cover"
-                                />
-                            </motion.button>
-                             <AnimatePresence>
-                                {openDropdown === 'profile' && <ProfilePanel onClose={closeAllPopups} user={MOCK_USER} />}
-                            </AnimatePresence>
+                            {user ? (
+                                <>
+                                    <motion.button 
+                                        onClick={() => setOpenDropdown(p => p === 'profile' ? null : 'profile')} 
+                                        className="relative w-10 h-10 sm:w-10 sm:h-10 rounded-full overflow-hidden touch-target shadow-lg transition-all ring-2 active:scale-90 bg-red-600/20 flex items-center justify-center"
+                                        animate={{
+                                            scale: openDropdown === 'profile' ? 0.95 : 1
+                                        }}
+                                        style={{
+                                            boxShadow: openDropdown === 'profile' 
+                                                ? '0 0 0 4px rgba(239, 68, 68, 0.3), 0 8px 24px rgba(239, 68, 68, 0.4)'
+                                                : '0 0 0 2px rgba(239, 68, 68, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3)'
+                                        }}
+                                        whileHover={{ scale: openDropdown === 'profile' ? 0.95 : 1.05 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        {user.photoURL ? (
+                                            <img 
+                                                src={user.photoURL} 
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-white font-bold">
+                                                {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
+                                            </span>
+                                        )}
+                                    </motion.button>
+                                    <AnimatePresence>
+                                        {openDropdown === 'profile' && <ProfilePanel onClose={closeAllPopups} />}
+                                    </AnimatePresence>
+                                </>
+                            ) : (
+                                <motion.button
+                                    onClick={() => setAuthModalOpen(true)}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-full font-medium text-sm touch-target"
+                                    whileHover={{ scale: 1.05, backgroundColor: '#dc2626' }}
+                                    whileTap={{ scale: 0.95 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    Login
+                                </motion.button>
+                            )}
                         </div>
                     </div>
                 </div>
             </MotionDiv>
+            
+            {/* Auth Modal */}
+            <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
         </>
     );
 }
