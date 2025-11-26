@@ -43,7 +43,7 @@ const Landing = () => {
           >
             <FiPlay className="text-red-600 text-3xl md:text-4xl" />
             <span className="text-3xl md:text-4xl font-black text-red-600" style={{ letterSpacing: '0.05em' }}>
-              SANVITV
+              Sanvika Flix
             </span>
           </motion.div>
           <motion.button

@@ -105,7 +105,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           <div className="bg-gradient-to-br from-neutral-900 to-black rounded-2xl p-8 shadow-2xl border border-white/10">
             {/* Logo */}
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-black text-red-600 mb-2">SANVITV</h1>
+              <h1 className="text-4xl font-black text-red-600 mb-2">Sanvika Flix</h1>
               <p className="text-gray-400 text-sm">
                 {mode === 'login' && 'Welcome back! Sign in to continue'}
                 {mode === 'signup' && 'Create your account to get started'}
