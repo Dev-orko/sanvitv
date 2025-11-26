@@ -744,29 +744,44 @@ const MobileSearch = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
     return (
         <AnimatePresence>
             {isOpen && (
-                <MotionDiv
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-neutral-900 z-50 md:hidden flex flex-col"
-                >
-                    {/* Search Header */}
-                    <div className="flex items-center gap-3 p-4 border-b border-neutral-800">
-                        <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-800 transition-colors touch-target">
-                            <FiX className="text-white" size={22} />
-                        </button>
-                        <div className="flex-1 relative">
-                            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                placeholder="Search movies & series..."
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                className="w-full h-12 pl-12 pr-4 bg-neutral-800 text-white text-base placeholder-neutral-500 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 touch-target"
-                            />
+                <>
+                    {/* Backdrop */}
+                    <MotionDiv
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 z-[200] md:hidden"
+                        onClick={onClose}
+                    />
+                    
+                    {/* Search Modal */}
+                    <MotionDiv
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        className="fixed inset-0 bg-neutral-900 z-[250] md:hidden flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Search Header */}
+                        <div className="flex items-center gap-3 p-4 border-b border-neutral-800">
+                            <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-800 transition-colors touch-target active:scale-95">
+                                <FiX className="text-white" size={22} />
+                            </button>
+                            <div className="flex-1 relative">
+                                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" size={18} />
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    placeholder="Search movies & series..."
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    className="w-full h-12 pl-12 pr-4 bg-neutral-800 text-white text-base placeholder-neutral-500 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 touch-target"
+                                    autoComplete="off"
+                                    autoFocus
+                                />
+                            </div>
                         </div>
-                    </div>
                     
                     {/* Search Results */}
                     <div className="flex-1 overflow-y-auto hide-scrollbar-mobile">
@@ -841,6 +856,7 @@ const MobileSearch = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                         )}
                     </div>
                 </MotionDiv>
+                </>
             )}
         </AnimatePresence>
     );
